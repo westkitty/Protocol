@@ -1,6 +1,7 @@
 {
   "name": "protocol",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "Gay Scene Library + Negotiation Templates — privacy-first structured scene planning toolkit.",
   "scripts": {

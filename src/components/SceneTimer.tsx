@@ -47,10 +47,12 @@ function playGentleChime() {
 export function SceneTimer({
   defaultMinutes,
   beats = [],
+  jumpSignal,
   onActiveBeatChange,
 }: {
   defaultMinutes: number;
   beats?: Beat[];
+  jumpSignal?: { index: number; seq: number } | null;
   onActiveBeatChange?: (beatIndex: number, isRunning: boolean) => void;
 }) {
   const [running, setRunning] = useState(false);
@@ -70,6 +72,11 @@ export function SceneTimer({
   const beatState = useMemo(() => computeActiveBeat(beats, elapsedSec), [beats, elapsedSec]);
   const prevBeatIdxRef = useRef<number>(beatState.activeIndex);
   const prevCheckInRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!jumpSignal || beats.length === 0) return;
+    setElapsedSec(getBeatStartSec(beats, jumpSignal.index));
+  }, [jumpSignal, beats]);
 
   useEffect(() => {
     onActiveBeatChange?.(beatState.activeIndex, running);

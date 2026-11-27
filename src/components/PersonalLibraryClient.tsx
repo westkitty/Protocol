@@ -2,13 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Trash2, Download, CheckCircle2, Circle, ArrowRight, RotateCcw } from "lucide-react";
 import { PROGRESSIVE_TRACKS } from "@/lib/constants";
 import { sceneToMarkdown } from "@/lib/export";
+import { saveSceneDraft } from "@/lib/storage";
 import type { SavedCustomScene, Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 
 export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
+  const router = useRouter();
   const {
     discreetMode,
     savedScenes,
@@ -35,6 +38,20 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
     if (!lastDeleted) return;
     upsertSavedScene(lastDeleted);
     setLastDeleted(null);
+  };
+
+  const handleOpenSavedInWorkspace = (saved: SavedCustomScene) => {
+    saveSceneDraft(saved.sceneId, {
+      partnerAName: saved.partnerAName,
+      partnerBName: saved.partnerBName,
+      customTitle: saved.customTitle,
+      responses: saved.responses,
+      completedItems: saved.completedItems,
+      notes: saved.notes,
+      customLimits: saved.journalNotes,
+      updatedAt: Date.now(),
+    });
+    router.push(`/scenes/${saved.sceneId}`);
   };
 
   const handleExportSaved = (savedId: string) => {
@@ -130,12 +147,13 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
                     </p>
                   </div>
                   <div className="flex items-center gap-2 glow-rail">
-                    <Link
-                      href={`/scenes/${saved.sceneId}`}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSavedInWorkspace(saved)}
                       className="btn-red inline-flex items-center px-3.5 min-h-[44px] rounded text-xs font-semibold"
                     >
-                      Open Template
-                    </Link>
+                      Open in Workspace
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleExportSaved(saved.id)}

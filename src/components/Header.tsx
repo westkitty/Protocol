@@ -18,11 +18,26 @@ export function Header({ scenes = [] }: { scenes?: SceneIndexItem[] }) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setPaletteOpen((prev) => !prev);
+        return;
+      }
+      if (e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "d") {
+        const target = e.target as HTMLElement | null;
+        const tag = target?.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          target?.isContentEditable
+        ) {
+          return;
+        }
+        e.preventDefault();
+        setDiscreetMode(!discreetMode);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [discreetMode, setDiscreetMode]);
 
   const navItems = [
     { href: "/", label: "Library", shortLabel: "Library", icon: BookOpen },
@@ -98,7 +113,7 @@ export function Header({ scenes = [] }: { scenes?: SceneIndexItem[] }) {
             <button
               type="button"
               onClick={() => setDiscreetMode(!discreetMode)}
-              title="Toggle Discreet Mode (neutralizes titles and browser tab)"
+              title="Toggle Discreet Mode (Shift+D)"
               aria-pressed={discreetMode}
               className={`flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-md text-xs font-semibold shrink-0 ${
                 discreetMode ? "btn-red" : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"

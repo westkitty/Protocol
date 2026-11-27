@@ -107,6 +107,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
   const [savedNotice, setSavedNotice] = useState(false);
   const [activeBeatIndex, setActiveBeatIndex] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [jumpSignal, setJumpSignal] = useState<{ index: number; seq: number } | null>(null);
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -571,6 +572,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
             <SceneTimer
               defaultMinutes={scene.duration_min}
               beats={scene.beats}
+              jumpSignal={jumpSignal}
               onActiveBeatChange={(idx, isRun) => {
                 setActiveBeatIndex(idx);
                 setTimerRunning(isRun);
@@ -840,6 +842,15 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
                           </span>
                         )}
                         <span className="text-[#A6A6B2]">{beat.duration_min} min</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setJumpSignal((prev) => ({ index: idx, seq: (prev?.seq ?? 0) + 1 }))
+                          }
+                          className="no-print glow-neighbor px-2 py-1 min-h-[30px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
+                        >
+                          Jump
+                        </button>
                       </div>
                     </div>
                     <p className="text-sm text-[#A6A6B2] print-muted">{beat.description}</p>
