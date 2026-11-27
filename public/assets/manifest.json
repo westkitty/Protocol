@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "visualDna": {
+    "canvas": "#070709",
+    "surface": "#101014",
+    "accent": "#C41E2E",
+    "strokeWeight": 1.75,
+    "aesthetic": "Obsidian Leather & Crimson Tactical Utility"
+  },
+  "physicalAssets": [
+    {
+      "id": "app-favicon",
+      "path": "src/app/icon.svg",
+      "dimensions": "64x64",
+      "format": "svg",
+      "usage": "Browser tab favicon and app crest"
+    },
+    {
+      "id": "hero-leather-grid",
+      "path": "public/assets/hero-leather-grid.svg",
+      "dimensions": "1200x320",
+      "format": "svg",
+      "usage": "Hero backdrop texture on Library landing page"
+    }
+  ],
+  "componentAssets": [
+    {
+      "id": "brand-mark",
+      "component": "src/components/BrandMark.tsx",
+      "viewBox": "0 0 36 36",
+      "variants": ["standard", "discreet"],
+      "usage": "Primary Header brand emblem"
+    },
+    {
+      "id": "category-emblems",
+      "component": "src/components/CategoryEmblem.tsx",
+      "viewBox": "0 0 24 24",
+      "count": 8,
+      "usage": "Library filter pills, scene cards, and SceneWorkspace header badge"
+    },
+    {
+      "id": "intensity-meter",
+      "component": "src/components/IntensityMeter.tsx",
+      "variants": ["light", "medium", "heavy", "progressive"],
+      "usage": "4-bar visual intensity gauge in IntensityBadge"
+    },
+    {
+      "id": "safety-zone-diagram",
+      "component": "src/components/SafetyZoneDiagram.tsx",
+      "viewBox": "0 0 360 220",
+      "usage": "Anatomical safe target vs. avoid-zone reference in impact and risk scenes"
+    }
+  ]
+}

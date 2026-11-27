@@ -17,6 +17,7 @@ import { CATEGORIES } from "@/lib/constants";
 import type { ExperienceLevel, Intensity, Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 import { IntensityBadge } from "./IntensityBadge";
+import { CategoryEmblem } from "./CategoryEmblem";
 
 type DurationFilter = "all" | "short" | "medium" | "extended";
 type TierFilter = "all" | "free";
@@ -108,8 +109,14 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
   return (
     <div className="space-y-6">
       {/* Hero / Lead Magnet Banner */}
-      <section className="card-elevated rounded-xl border border-[#27272F] bg-[#101014] p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <section className="card-elevated relative overflow-hidden rounded-xl border border-[#27272F] bg-[#101014] p-4 sm:p-6">
+        <img
+          src="/assets/hero-leather-grid.svg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-80"
+        />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-2 max-w-2xl">
             <h1 className="font-heading text-3xl sm:text-4xl font-bold uppercase tracking-wide text-[#F5F5F7]">
               {discreetMode
@@ -236,11 +243,14 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
                 type="button"
                 onClick={() => setCategoryFilter(active ? "all" : cat.slug)}
                 aria-pressed={active}
-                className={`px-3.5 min-h-[38px] rounded-full text-xs font-medium whitespace-nowrap ${
+                className={`inline-flex items-center gap-1.5 px-3.5 min-h-[38px] rounded-full text-xs font-medium whitespace-nowrap ${
                   active ? "btn-red" : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
                 }`}
               >
-                {discreetMode ? cat.discreetName : cat.name} ({count})
+                <CategoryEmblem categorySlug={cat.slug} className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {discreetMode ? cat.discreetName : cat.name} ({count})
+                </span>
               </button>
             );
           })}
@@ -337,8 +347,12 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] uppercase tracking-wider text-[#A6A6B2] truncate">
-                      {displayCategory}
+                    <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#A6A6B2] truncate">
+                      <CategoryEmblem
+                        categorySlug={scene.category_slug}
+                        className="w-3.5 h-3.5 text-[#F87171] shrink-0"
+                      />
+                      <span className="truncate">{displayCategory}</span>
                     </span>
                     {scene.tier === "free" ? (
                       <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[#4A7C59]/20 text-[#88B897] border border-[#4A7C59]/50">

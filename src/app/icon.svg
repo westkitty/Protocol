@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <defs>
+    <radialGradient id="crestGlow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#C41E2E" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#070709" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#070709" stroke="#27272F" stroke-width="2" />
+  <rect x="6" y="6" width="52" height="52" rx="10" fill="#101014" stroke="#1F1F27" stroke-width="1" />
+  <circle cx="32" cy="32" r="24" fill="url(#crestGlow)" />
+  <!-- Forged D-ring / Protocol Monogram -->
+  <path
+    d="M21 17V47M21 17H35.5C41.8513 17 47 21.701 47 27.5C47 33.299 41.8513 38 35.5 38H21"
+    stroke="#C41E2E"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M21 17H35.5C41.8513 17 47 21.701 47 27.5C47 33.299 41.8513 38 35.5 38H21"
+    stroke="#F87171"
+    stroke-opacity="0.55"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="21" cy="47" r="2.5" fill="#F5F5F7" />
+</svg>

@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { validateAllScenes } from "../scripts/validate-scenes.mjs";
 import {
   comparePartnerResponses,
@@ -90,4 +92,19 @@ test("markdown export includes YAML frontmatter and all 4 mandatory disclaimers"
   for (const disclaimer of MANDATORY_DISCLAIMERS) {
     assert.ok(md.includes(disclaimer), `Missing disclaimer: ${disclaimer}`);
   }
+});
+
+test("physical visual assets and manifest exist and are valid", () => {
+  const iconPath = path.join(process.cwd(), "src", "app", "icon.svg");
+  const heroPath = path.join(process.cwd(), "public", "assets", "hero-leather-grid.svg");
+  const manifestPath = path.join(process.cwd(), "public", "assets", "manifest.json");
+
+  const iconSvg = fs.readFileSync(iconPath, "utf8");
+  const heroSvg = fs.readFileSync(heroPath, "utf8");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+
+  assert.ok(iconSvg.includes("<svg") && iconSvg.includes("#C41E2E"));
+  assert.ok(heroSvg.includes("<svg") && heroSvg.includes("stitchedGrid"));
+  assert.equal(manifest.physicalAssets.length, 2);
+  assert.equal(manifest.componentAssets.length, 4);
 });

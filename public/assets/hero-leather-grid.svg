@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" preserveAspectRatio="xMidYMid slice" fill="none">
+  <defs>
+    <radialGradient id="crimsonHorizon" cx="82%" cy="22%" r="55%">
+      <stop offset="0%" stop-color="#C41E2E" stop-opacity="0.22" />
+      <stop offset="55%" stop-color="#C41E2E" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#070709" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="stitchedGrid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" stroke="#1F1F27" stroke-width="1" />
+      <path d="M24 0V48M0 24H48" stroke="#17171C" stroke-width="0.75" stroke-dasharray="3 5" />
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="320" fill="#101014" />
+  <rect width="1200" height="320" fill="url(#stitchedGrid)" opacity="0.85" />
+  <rect width="1200" height="320" fill="url(#crimsonHorizon)" />
+
+  <!-- Architectural corner registration marks -->
+  <path d="M24 44V24H44" stroke="#C41E2E" stroke-opacity="0.45" stroke-width="1.5" />
+  <path d="M1176 44V24H1156" stroke="#C41E2E" stroke-opacity="0.45" stroke-width="1.5" />
+  <path d="M24 276V296H44" stroke="#27272F" stroke-width="1.5" />
+  <path d="M1176 276V296H1156" stroke="#27272F" stroke-width="1.5" />
+
+  <!-- Subtle diagonal leather-strap tension lines -->
+  <path d="M880 -20L1220 260" stroke="#C41E2E" stroke-opacity="0.16" stroke-width="1" />
+  <path d="M940 -20L1240 210" stroke="#F87171" stroke-opacity="0.08" stroke-width="1" />
+</svg>

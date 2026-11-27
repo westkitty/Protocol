@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Eye, EyeOff, BookOpen, GitCompare, FolderHeart, Settings } from "lucide-react";
 import { useApp } from "@/context/AppContext";
+import { BrandMark } from "./BrandMark";
 
 export function Header() {
   const pathname = usePathname();
@@ -27,11 +28,7 @@ export function Header() {
       <header className="no-print sticky top-0 z-40 border-b border-[#27272F] bg-[#070709] shadow-[0_4px_20px_rgba(0,0,0,0.65)]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 min-h-[44px]">
-            <span
-              className="w-2.5 h-7 rounded-sm shadow-[0_0_12px_var(--accent-glow)]"
-              style={{ backgroundColor: "var(--accent)" }}
-              aria-hidden="true"
-            />
+            <BrandMark discreet={discreetMode} />
             <div>
               <span className="font-heading text-xl sm:text-2xl font-bold tracking-wider uppercase text-[#F5F5F7] block leading-none">
                 {discreetMode ? "Field Notes" : "Protocol"}

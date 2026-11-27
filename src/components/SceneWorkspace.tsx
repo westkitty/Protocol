@@ -27,6 +27,8 @@ import { useApp } from "@/context/AppContext";
 import { IntensityBadge } from "./IntensityBadge";
 import { SceneTimer } from "./SceneTimer";
 import { SafetyBanner } from "./SafetyBanner";
+import { CategoryEmblem } from "./CategoryEmblem";
+import { SafetyZoneDiagram } from "./SafetyZoneDiagram";
 
 function CollapsibleSection({
   title,
@@ -410,9 +412,14 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
           </div>
         </div>
 
-        <h1 className="font-heading text-3xl sm:text-4xl font-bold uppercase tracking-wide text-[#F5F5F7]">
-          {displayTitle}
-        </h1>
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-lg border border-[#C41E2E]/45 bg-[#17171C] flex items-center justify-center text-[#F87171] shrink-0 shadow-[0_0_16px_var(--accent-glow-soft)]">
+            <CategoryEmblem categorySlug={scene.category_slug} className="w-6 h-6" />
+          </div>
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold uppercase tracking-wide text-[#F5F5F7]">
+            {displayTitle}
+          </h1>
+        </div>
 
         <p className="text-sm text-[#A6A6B2] print-muted leading-relaxed max-w-3xl">
           {scene.body}
@@ -573,14 +580,19 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
 
           {/* Risk Awareness */}
           <CollapsibleSection title="Risk Awareness" badge={`${scene.risk_notes.length} notes`}>
-            <ul className="space-y-2 text-sm text-[#F5F5F7]">
-              {scene.risk_notes.map((note) => (
-                <li key={note} className="flex items-start gap-2.5">
-                  <AlertTriangle className="w-4 h-4 text-[#F87171] shrink-0 mt-0.5" />
-                  <span className="text-[#D4D4CE] print-muted">{note}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-4">
+              <ul className="space-y-2 text-sm text-[#F5F5F7]">
+                {scene.risk_notes.map((note) => (
+                  <li key={note} className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-[#F87171] shrink-0 mt-0.5" />
+                    <span className="text-[#D4D4CE] print-muted">{note}</span>
+                  </li>
+                ))}
+              </ul>
+              {!discreetMode &&
+                (scene.category_slug === "impact-bondage-sensation" ||
+                  scene.id === "risk-matrix-quick-reference") && <SafetyZoneDiagram />}
+            </div>
           </CollapsibleSection>
 
           {/* Materials */}
