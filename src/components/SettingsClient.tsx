@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { Shield, Download, Trash2, Check, Lock } from "lucide-react";
 import { buildOfflineLibraryMarkdown } from "@/lib/export";
-import type { SavedCustomScene, Scene } from "@/lib/types";
+import { validateImportedBackup } from "@/lib/storage";
+import type { Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 
 export function SettingsClient({ scenes }: { scenes: Scene[] }) {
@@ -52,14 +53,16 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
     if (!file) return;
     try {
       const text = await file.text();
-      const parsed = JSON.parse(text) as SavedCustomScene[];
-      if (!Array.isArray(parsed)) {
-        throw new Error("Invalid backup format");
+      const parsed = JSON.parse(text) as unknown;
+      const check = validateImportedBackup(parsed);
+      if (!check.ok) {
+        setImportError(check.error);
+        return;
       }
-      importSavedScenes(parsed);
+      importSavedScenes(check.data);
     } catch {
       setImportError(
-        "Could not parse backup JSON file. Select a valid protocol-personal-library-backup.json export."
+        "Could not parse JSON syntax. Select a valid protocol-personal-library-backup.json export."
       );
     }
   };

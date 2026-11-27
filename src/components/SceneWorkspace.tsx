@@ -19,6 +19,7 @@ import {
   Share2,
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants";
+import { computeReadinessSummary } from "@/lib/conductor";
 import { sceneToMarkdown } from "@/lib/export";
 import { createSharePayload, encodeSharePayload } from "@/lib/share";
 import { clearSceneDraft, loadSceneDraft, saveSceneDraft } from "@/lib/storage";
@@ -104,6 +105,8 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [activeBeatIndex, setActiveBeatIndex] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
 
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +188,28 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
   );
   const progressPct =
     totalChecklistItems > 0 ? Math.round((ratedCount / totalChecklistItems) * 100) : 0;
+
+  const readiness = useMemo(
+    () => computeReadinessSummary(scene, responses),
+    [scene, responses]
+  );
+
+  const handleMarkSectionYes = (items: { id: string }[]) => {
+    setResponses((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        next[item.id] = "yes";
+      }
+      return next;
+    });
+    setCompletedItems((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        next[item.id] = true;
+      }
+      return next;
+    });
+  };
 
   const hasDraftEdits =
     ratedCount > 0 ||
@@ -543,7 +568,14 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
         <div className="space-y-5">
           {/* Timer + Partner Customization */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 no-print">
-            <SceneTimer defaultMinutes={scene.duration_min} />
+            <SceneTimer
+              defaultMinutes={scene.duration_min}
+              beats={scene.beats}
+              onActiveBeatChange={(idx, isRun) => {
+                setActiveBeatIndex(idx);
+                setTimerRunning(isRun);
+              }}
+            />
 
             <div className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-4 space-y-3">
               <span className="text-[11px] uppercase tracking-wider text-[#A6A6B2] block">
@@ -617,11 +649,47 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
             progressPct={progressPct}
           >
             <div className="space-y-6">
+              {/* Pre-Flight Readiness Summary Strip */}
+              <div className="no-print rounded-md border border-[#27272F] bg-[#070709] p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-semibold text-[#F5F5F7]">
+                  Pre-Flight Readiness:{" "}
+                  <span
+                    className={
+                      readiness.status === "ready"
+                        ? "text-[#88B897]"
+                        : readiness.status === "has-hard-no"
+                          ? "text-[#FCA5A5]"
+                          : "text-[#E0C37C]"
+                    }
+                  >
+                    {readiness.status === "ready"
+                      ? "All Clear — Ready"
+                      : readiness.status === "has-hard-no"
+                        ? `${readiness.noCount} Hard Limit(s) Set`
+                        : `${readiness.unansweredCount} Unanswered • ${readiness.maybeCount} Maybe`}
+                  </span>
+                </span>
+                <div className="flex items-center gap-3 text-[11px]">
+                  <span className="text-[#88B897]">{readiness.yesCount} Yes</span>
+                  <span className="text-[#E0C37C]">{readiness.maybeCount} Maybe</span>
+                  <span className="text-[#FCA5A5]">{readiness.noCount} No</span>
+                </div>
+              </div>
+
               {scene.negotiation.checklist.map((sec) => (
                 <div key={sec.section} className="space-y-3">
-                  <h3 className="font-heading text-sm uppercase tracking-wider text-[#F87171]">
-                    {sec.section}
-                  </h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-heading text-sm uppercase tracking-wider text-[#F87171]">
+                      {sec.section}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkSectionYes(sec.items)}
+                      className="no-print glow-neighbor px-2.5 min-h-[32px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
+                    >
+                      Mark Section Yes
+                    </button>
+                  </div>
                   <div className="space-y-2.5">
                     {sec.items.map((item) => {
                       const val = responses[item.id];
@@ -745,27 +813,39 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
           {/* Sequential Beats */}
           <CollapsibleSection title="Scene Beats" badge={`${scene.beats.length} beats`}>
             <ol className="space-y-3">
-              {scene.beats.map((beat) => (
-                <li
-                  key={beat.order}
-                  className="rounded-md border border-[#27272F] bg-[#17171C]/70 p-3.5 space-y-1"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-heading text-base font-bold text-[#F5F5F7]">
-                      {beat.order}. {beat.title}
-                    </span>
-                    <div className="flex items-center gap-2 text-xs">
-                      {beat.check_in && (
-                        <span className="px-2 py-0.5 rounded bg-[#C41E2E]/20 text-[#FCA5A5] border border-[#C41E2E]/50">
-                          Check-in
-                        </span>
-                      )}
-                      <span className="text-[#A6A6B2]">{beat.duration_min} min</span>
+              {scene.beats.map((beat, idx) => {
+                const isLive = idx === activeBeatIndex && (timerRunning || activeBeatIndex > 0);
+                return (
+                  <li
+                    key={beat.order}
+                    className={`rounded-md border p-3.5 space-y-1 transition-all ${
+                      isLive
+                        ? "border-[#C41E2E] bg-[#C41E2E]/10 shadow-[0_0_18px_var(--accent-glow-soft)]"
+                        : "border-[#27272F] bg-[#17171C]/70"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-heading text-base font-bold text-[#F5F5F7]">
+                        {beat.order}. {beat.title}
+                      </span>
+                      <div className="flex items-center gap-2 text-xs">
+                        {isLive && (
+                          <span className="no-print px-2 py-0.5 rounded bg-[#C41E2E] text-white font-semibold uppercase text-[10px]">
+                            {timerRunning ? "Live Now" : "Selected"}
+                          </span>
+                        )}
+                        {beat.check_in && (
+                          <span className="px-2 py-0.5 rounded bg-[#C41E2E]/20 text-[#FCA5A5] border border-[#C41E2E]/50">
+                            Check-in
+                          </span>
+                        )}
+                        <span className="text-[#A6A6B2]">{beat.duration_min} min</span>
+                      </div>
                     </div>
-                  </div>
-                  <p className="text-sm text-[#A6A6B2] print-muted">{beat.description}</p>
-                </li>
-              ))}
+                    <p className="text-sm text-[#A6A6B2] print-muted">{beat.description}</p>
+                  </li>
+                );
+              })}
             </ol>
           </CollapsibleSection>
 

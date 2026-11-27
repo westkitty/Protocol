@@ -13,6 +13,12 @@ import {
 import { MANDATORY_DISCLAIMERS, SHARE_EXPIRY_MS } from "../src/lib/constants.ts";
 import { sceneToMarkdown } from "../src/lib/export.ts";
 import { getAllScenes } from "../src/lib/scenes.ts";
+import {
+  computeActiveBeat,
+  computeReadinessSummary,
+  getBeatStartSec,
+} from "../src/lib/conductor.ts";
+import { validateImportedBackup } from "../src/lib/storage.ts";
 
 test("all 49 scene markdown templates pass schema validation", () => {
   const { count, errors } = validateAllScenes();
@@ -107,4 +113,78 @@ test("physical visual assets and manifest exist and are valid", () => {
   assert.ok(heroSvg.includes("<svg") && heroSvg.includes("stitchedGrid"));
   assert.equal(manifest.physicalAssets.length, 2);
   assert.equal(manifest.componentAssets.length, 4);
+});
+
+test("computeActiveBeat tracks beat transitions, boundaries, and overtime accurately", () => {
+  const beats = [
+    { order: 1, title: "Warm-Up", duration_min: 10, description: "Start slow" },
+    { order: 2, title: "Peak", duration_min: 15, description: "Build intensity", check_in: true },
+    { order: 3, title: "Cool-Down", duration_min: 5, description: "Ground" },
+  ];
+
+  const start = computeActiveBeat(beats, 0);
+  assert.equal(start.activeIndex, 0);
+  assert.equal(start.currentBeat?.title, "Warm-Up");
+  assert.equal(start.nextBeat?.title, "Peak");
+  assert.equal(start.beatRemainingSec, 600);
+  assert.equal(start.completed, false);
+
+  const exactBoundary = computeActiveBeat(beats, 600);
+  assert.equal(exactBoundary.activeIndex, 1);
+  assert.equal(exactBoundary.currentBeat?.title, "Peak");
+  assert.equal(exactBoundary.beatRemainingSec, 900);
+
+  const jumpStart = getBeatStartSec(beats, 2);
+  assert.equal(jumpStart, 1500);
+
+  const done = computeActiveBeat(beats, 1900);
+  assert.equal(done.completed, true);
+  assert.equal(done.activeIndex, 2);
+  assert.equal(done.overallProgressPct, 100);
+});
+
+test("computeReadinessSummary distinguishes ready, needs-alignment, and hard-no states", () => {
+  const scene = getAllScenes().find((s) => s.id === "full-scene-negotiation-framework");
+  assert.ok(scene);
+
+  const empty = computeReadinessSummary(scene, {});
+  assert.equal(empty.status, "needs-alignment");
+  assert.equal(empty.unansweredCount, empty.total);
+
+  const allYesMap = {};
+  for (const sec of scene.negotiation.checklist) {
+    for (const item of sec.items) {
+      allYesMap[item.id] = "yes";
+    }
+  }
+  const ready = computeReadinessSummary(scene, allYesMap);
+  assert.equal(ready.status, "ready");
+  assert.equal(ready.yesCount, ready.total);
+
+  const firstId = scene.negotiation.checklist[0].items[0].id;
+  const withNo = computeReadinessSummary(scene, { ...allYesMap, [firstId]: "no" });
+  assert.equal(withNo.status, "has-hard-no");
+  assert.equal(withNo.noCount, 1);
+  assert.equal(withNo.hardNoLabels.length, 1);
+});
+
+test("validateImportedBackup rejects malformed payloads with field-level errors", () => {
+  assert.equal(validateImportedBackup({ not: "array" }).ok, false);
+  assert.equal(validateImportedBackup([{ id: "x" }]).ok, false);
+
+  const valid = validateImportedBackup([
+    {
+      id: "saved-1",
+      sceneId: "full-scene-negotiation-framework",
+      customTitle: "Friday Session",
+      partnerAName: "Alex",
+      partnerBName: "Sam",
+      responses: {},
+      completedItems: {},
+      notes: {},
+      journalNotes: "",
+      updatedAt: 1700000000000,
+    },
+  ]);
+  assert.equal(valid.ok, true);
 });

@@ -123,3 +123,47 @@ export function wipeAllLocalData(): void {
     window.localStorage.removeItem(k);
   }
 }
+
+export function validateImportedBackup(
+  raw: unknown
+): { ok: true; data: SavedCustomScene[] } | { ok: false; error: string } {
+  if (!Array.isArray(raw)) {
+    return {
+      ok: false,
+      error: "Backup must be a JSON array of saved scenes (exported from Protocol).",
+    };
+  }
+
+  for (let i = 0; i < raw.length; i++) {
+    const item = raw[i];
+    if (!item || typeof item !== "object") {
+      return { ok: false, error: `Entry #${i + 1} is not a valid object.` };
+    }
+    const rec = item as Record<string, unknown>;
+    const requiredStrings = ["id", "sceneId", "customTitle", "partnerAName", "partnerBName"];
+    for (const key of requiredStrings) {
+      if (typeof rec[key] !== "string" || (rec[key] as string).trim().length === 0) {
+        return {
+          ok: false,
+          error: `Entry #${i + 1} is missing required string field "${key}".`,
+        };
+      }
+    }
+    if (typeof rec.updatedAt !== "number" || !Number.isFinite(rec.updatedAt)) {
+      return {
+        ok: false,
+        error: `Entry #${i + 1} has invalid numeric timestamp "updatedAt".`,
+      };
+    }
+    for (const objKey of ["responses", "completedItems", "notes"]) {
+      if (!rec[objKey] || typeof rec[objKey] !== "object" || Array.isArray(rec[objKey])) {
+        return {
+          ok: false,
+          error: `Entry #${i + 1} is missing object map "${objKey}".`,
+        };
+      }
+    }
+  }
+
+  return { ok: true, data: raw as SavedCustomScene[] };
+}

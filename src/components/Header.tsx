@@ -1,15 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Eye, EyeOff, BookOpen, GitCompare, FolderHeart, Settings } from "lucide-react";
+import { Eye, EyeOff, BookOpen, GitCompare, FolderHeart, Settings, Search } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { BrandMark } from "./BrandMark";
+import { CommandPalette, type SceneIndexItem } from "./CommandPalette";
 
-export function Header() {
+export function Header({ scenes = [] }: { scenes?: SceneIndexItem[] }) {
   const pathname = usePathname();
   const { discreetMode, setDiscreetMode, savedScenes } = useApp();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const navItems = [
     { href: "/", label: "Library", shortLabel: "Library", icon: BookOpen },
@@ -67,20 +80,42 @@ export function Header() {
             })}
           </nav>
 
-          <button
-            type="button"
-            onClick={() => setDiscreetMode(!discreetMode)}
-            title="Toggle Discreet Mode (neutralizes titles and browser tab)"
-            aria-pressed={discreetMode}
-            className={`flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-md text-xs font-semibold shrink-0 ${
-              discreetMode ? "btn-red" : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
-            }`}
-          >
-            {discreetMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            <span>{discreetMode ? "Discreet On" : "Discreet"}</span>
-          </button>
+          <div className="flex items-center gap-1.5 glow-rail shrink-0">
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Open command palette (Command+K)"
+              title="Quick Jump (⌘K / Ctrl+K)"
+              className="glow-neighbor flex items-center gap-1.5 px-3 min-h-[44px] rounded-md text-xs font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden lg:inline">Quick Jump</span>
+              <kbd className="hidden sm:inline px-1.5 py-0.5 text-[10px] rounded bg-[#070709] border border-[#27272F] text-[#A6A6B2]">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDiscreetMode(!discreetMode)}
+              title="Toggle Discreet Mode (neutralizes titles and browser tab)"
+              aria-pressed={discreetMode}
+              className={`flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-md text-xs font-semibold shrink-0 ${
+                discreetMode ? "btn-red" : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
+              }`}
+            >
+              {discreetMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              <span>{discreetMode ? "Discreet On" : "Discreet"}</span>
+            </button>
+          </div>
         </div>
       </header>
+
+      <CommandPalette
+        scenes={scenes}
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
 
       {/* Mobile Bottom Tab Navigation (zero horizontal clipping, 48px+ thumb targets) */}
       <nav

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Search,
   LayoutGrid,
@@ -110,11 +111,13 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
     <div className="space-y-6">
       {/* Hero / Lead Magnet Banner */}
       <section className="card-elevated relative overflow-hidden rounded-xl border border-[#27272F] bg-[#101014] p-4 sm:p-6">
-        <img
+        <Image
           src="/assets/hero-leather-grid.svg"
           alt=""
+          fill
+          priority
           aria-hidden="true"
-          className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover opacity-80"
+          className="pointer-events-none select-none object-cover opacity-80"
         />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-2 max-w-2xl">

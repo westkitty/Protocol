@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Trash2, Download, CheckCircle2, Circle, ArrowRight } from "lucide-react";
+import { Trash2, Download, CheckCircle2, Circle, ArrowRight, RotateCcw } from "lucide-react";
 import { PROGRESSIVE_TRACKS } from "@/lib/constants";
 import { sceneToMarkdown } from "@/lib/export";
-import type { Scene } from "@/lib/types";
+import type { SavedCustomScene, Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 
 export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
@@ -17,6 +17,25 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
     completedTracks,
     toggleTrackScene,
   } = useApp();
+
+  const [lastDeleted, setLastDeleted] = useState<SavedCustomScene | null>(null);
+
+  useEffect(() => {
+    if (!lastDeleted) return;
+    const timer = window.setTimeout(() => setLastDeleted(null), 5000);
+    return () => window.clearTimeout(timer);
+  }, [lastDeleted]);
+
+  const handleDeleteWithUndo = (saved: SavedCustomScene) => {
+    setLastDeleted(saved);
+    deleteSavedScene(saved.id);
+  };
+
+  const handleUndoDelete = () => {
+    if (!lastDeleted) return;
+    upsertSavedScene(lastDeleted);
+    setLastDeleted(null);
+  };
 
   const handleExportSaved = (savedId: string) => {
     const saved = savedScenes.find((s) => s.id === savedId);
@@ -58,6 +77,26 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
         <h2 className="font-heading text-xl font-bold uppercase text-[#F5F5F7]">
           Saved Scenes &amp; Private Notes ({savedScenes.length})
         </h2>
+
+        {lastDeleted && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="card-elevated rounded-lg border border-[#C41E2E]/60 bg-[#101014] px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs"
+          >
+            <span className="text-[#F5F5F7]">
+              Removed <strong>{lastDeleted.customTitle}</strong> from Personal Library.
+            </span>
+            <button
+              type="button"
+              onClick={handleUndoDelete}
+              className="btn-red inline-flex items-center gap-1.5 px-3.5 min-h-[36px] rounded font-semibold"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Undo Delete</span>
+            </button>
+          </div>
+        )}
 
         {savedScenes.length === 0 ? (
           <div className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-8 text-center space-y-4">
@@ -107,7 +146,7 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => deleteSavedScene(saved.id)}
+                      onClick={() => handleDeleteWithUndo(saved)}
                       aria-label={`Delete ${saved.customTitle}`}
                       className="glow-neighbor min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-[#F87171] hover:bg-[#C41E2E]/20"
                     >
