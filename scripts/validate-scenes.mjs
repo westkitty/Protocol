@@ -74,6 +74,8 @@ export function validateAllScenes() {
     for (const arrField of ["roles", "materials", "risk_notes", "tags"]) {
       if (!Array.isArray(d[arrField]) || d[arrField].length === 0) {
         errors.push(`${rel}: '${arrField}' must be a non-empty array`);
+      } else if (d[arrField].some((item) => typeof item !== "string")) {
+        errors.push(`${rel}: '${arrField}' must contain only strings`);
       }
     }
 

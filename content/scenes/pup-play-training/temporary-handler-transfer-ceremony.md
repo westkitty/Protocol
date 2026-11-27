@@ -16,7 +16,7 @@ materials:
   - Written or verbal summary of pup's limits & cues
 prep_time_min: 15
 risk_notes:
-  - Three-way consent is mandatory: Primary Handler, Guest Handler, and Pup must all enthusiastically agree.
+  - "Three-way consent is mandatory: Primary Handler, Guest Handler, and Pup must all enthusiastically agree."
   - Guest Handler must know the pup's exact hard limits, health notes, and safeword before taking the leash.
 negotiation:
   checklist:
