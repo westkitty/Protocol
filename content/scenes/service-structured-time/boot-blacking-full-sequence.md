@@ -15,7 +15,7 @@ materials:
   - Pair of leather boots (clean enough to work on)
   - Saddle soap, conditioner, polish, brushes, cloths
   - Water, towels, kneeling mat or cushion
-  - Optional: music or complete silence
+  - "Optional: music or complete silence"
 prep_time_min: 10
 risk_notes:
   - Confirm any chemical sensitivities to cleaners or polish.
@@ -30,6 +30,15 @@ negotiation:
           label: Speech rules during service (silent, limited, or conversational) set
         - id: bb-praise
           label: Level of verbal feedback desired confirmed
+  scripts:
+    - context: Calling to Service
+      line: "Boots. Now."
+    - context: During Cleaning
+      line: "Slower. Make sure you get the seams."
+    - context: Praise or Correction
+      line: "Those are coming along well."
+    - context: Final Presentation
+      line: "Present them."
 pre_scene:
   steps:
     - Set up the boots, supplies, and kneeling position before calling the sub in.
@@ -55,14 +64,27 @@ beats:
 variations:
   lighter:
     title: Quick Polish Only
+    summary: A short shine focused on visible surfaces, without a full strip and rebuild.
+    adjustments:
+      - Skip deep cleaning and work only the toe cap and heel.
   heavier:
     title: Full Silent High-Protocol Blacking
+    summary: Complete clean, condition, and mirror shine in service silence with formal presentation.
+    adjustments:
+      - Add a stretch and water break if the service runs long; keep speech restricted until presentation.
 aftercare:
   immediate:
     - Water and stretch after kneeling.
+  physical:
+    - Wash polish off hands and forearms; stretch back, shoulders, and knees.
+  emotional:
+    - Admire the finished boots together and acknowledge the patience of the service.
+  next_day:
+    - Store brushes and cloths cleanly so wax does not harden.
 debrief:
   prompts:
     - How did the pacing of the service feel?
+  check_in_window: Right after the final presentation and hand-washing.
 tags:
   - service
   - leather

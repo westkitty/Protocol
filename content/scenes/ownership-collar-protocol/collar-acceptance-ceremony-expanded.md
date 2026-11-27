@@ -13,7 +13,7 @@ experience_level: intermediate
 tier: free
 materials:
   - Collar (temporary or permanent-style)
-  - Optional: leash, kneeling mat, candle or low light
+  - "Optional: leash, kneeling mat, candle or low light"
   - Written agreement or verbal container notes
 prep_time_min: 15
 risk_notes:
@@ -30,6 +30,15 @@ negotiation:
           label: What the collar represents for both parties discussed
         - id: ca-removal
           label: Who may remove it and under what conditions confirmed
+  scripts:
+    - context: Opening the Ceremony
+      line: "Kneel. We begin."
+    - context: Statement of Meaning
+      line: "Tell me what this collar means to you."
+    - context: Fastening
+      line: "Chin up. Hold still."
+    - context: Closing Acknowledgment
+      line: "The collar is on. You are under this agreement until [end condition]."
 pre_scene:
   steps:
     - Review the agreed meaning and limits of the collar outside the ceremony space.
@@ -55,16 +64,27 @@ beats:
 variations:
   lighter:
     title: Short Scene Collar
+    summary: A brief, private ceremony that marks a scene-length or short-term collar.
+    adjustments:
+      - Keep vows short and skip written documents or witnesses.
   heavier:
     title: Full Written + Verbal Ceremony
+    summary: Formal spoken and written statements of meaning, with a deliberate fastening and close.
+    adjustments:
+      - Include written vows and a scheduled follow-up date to revisit the commitment.
 aftercare:
   immediate:
     - Quiet time together or space as preferred.
+  physical:
+    - Check collar comfort and skin clearance around the neck.
+  emotional:
+    - Hold or sit together quietly so the emotional intensity can settle.
   next_day:
     - Brief check-in about how the collar feels symbolically and physically.
 debrief:
   prompts:
     - Did the language match what you both wanted the collar to mean?
+  check_in_window: Next morning and at an agreed follow-up date.
 tags:
   - collar
   - ownership

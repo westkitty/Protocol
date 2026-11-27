@@ -15,7 +15,8 @@ import {
   X,
 } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants";
-import type { ExperienceLevel, Intensity, Scene } from "@/lib/types";
+import type { ExperienceLevel, Intensity, ResourceDocument, Scene } from "@/lib/types";
+import { resourceHref, resourceKindLabel } from "@/lib/resource-meta";
 import { useApp } from "@/context/AppContext";
 import { IntensityBadge } from "./IntensityBadge";
 import { CategoryEmblem } from "./CategoryEmblem";
@@ -23,8 +24,20 @@ import { CategoryEmblem } from "./CategoryEmblem";
 type DurationFilter = "all" | "short" | "medium" | "extended";
 type TierFilter = "all" | "free";
 
-export function LibraryClient({ scenes }: { scenes: Scene[] }) {
+export function LibraryClient({
+  scenes,
+  languagePacks = [],
+  taskLibraries = [],
+}: {
+  scenes: Scene[];
+  languagePacks?: ResourceDocument[];
+  taskLibraries?: ResourceDocument[];
+}) {
   const { discreetMode, proUnlocked, setProUnlocked } = useApp();
+  const resources = useMemo(
+    () => [...languagePacks, ...taskLibraries],
+    [languagePacks, taskLibraries]
+  );
 
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -74,6 +87,25 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
     durationFilter,
     tierFilter,
   ]);
+
+  const filteredResources = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return resources.filter((resource) => {
+      if (categoryFilter !== "all" && resource.category_slug !== categoryFilter) return false;
+      if (tierFilter === "free" && resource.tier !== "free") return false;
+      // Intensity, experience, and duration filters apply only to scenes.
+      if (intensityFilter !== "all" || experienceFilter !== "all" || durationFilter !== "all") {
+        return false;
+      }
+      if (q) {
+        const haystack = [resource.title, resource.category, resourceKindLabel(resource.kind), ...resource.tags]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(q) && !resource.body.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [resources, query, categoryFilter, intensityFilter, experienceFilter, durationFilter, tierFilter]);
 
   const secondaryFilterCount =
     (intensityFilter !== "all" ? 1 : 0) +
@@ -164,8 +196,8 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search scenes, gear, tags, roles..."
-              aria-label="Search scene library"
+              placeholder="Search scenes, packs, tasks, gear, tags, roles..."
+              aria-label="Search scene library, language packs, and task libraries"
               className="w-full pl-10 pr-4 min-h-[44px] rounded-md bg-[#101014] border border-[#27272F] text-sm text-[#F5F5F7] placeholder:text-[#9A9A9A] focus:border-[var(--accent)]"
             />
           </div>
@@ -455,6 +487,60 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
             );
           })}
         </div>
+      )}
+
+      {filteredResources.length > 0 && (
+        <section id="library-resources" className="space-y-3 pt-2">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <h2 className="font-heading text-xl font-bold uppercase tracking-wide text-[#F5F5F7]">
+                Language Packs & Task Libraries
+              </h2>
+              <p className="text-xs text-[#A6A6B2] mt-1">
+                Modular phrases and reusable tasks you can drop into any compatible scene.
+              </p>
+            </div>
+            <span className="text-xs text-[#A6A6B2] shrink-0">
+              {filteredResources.length} of {resources.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredResources.map((resource) => {
+              const catMeta = CATEGORIES.find((c) => c.slug === resource.category_slug);
+              const displayCategory = discreetMode
+                ? catMeta?.discreetName || resource.category
+                : resource.category;
+              return (
+                <Link
+                  key={resource.id}
+                  href={resourceHref(resource)}
+                  className="card-elevated group rounded-lg border border-[#27272F] bg-[#101014] hover:bg-[#17171C] hover:border-[#C41E2E]/60 hover:shadow-[0_0_24px_rgba(220,38,38,0.16)] p-5 flex flex-col justify-between gap-4 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-[#A6A6B2] truncate">
+                        <CategoryEmblem
+                          categorySlug={resource.category_slug}
+                          className="w-3.5 h-3.5 text-[#F87171] shrink-0"
+                        />
+                        <span className="truncate">{displayCategory}</span>
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-[#17171C] text-[#F5F5F7] border border-[#27272F]">
+                        {resourceKindLabel(resource.kind)}
+                      </span>
+                    </div>
+                    <h3 className="font-heading text-xl font-bold text-[#F5F5F7] group-hover:text-white leading-tight">
+                      {resource.title}
+                    </h3>
+                    <p className="text-xs text-[#A6A6B2] line-clamp-2 leading-relaxed">
+                      {resource.body}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
       )}
     </div>
   );

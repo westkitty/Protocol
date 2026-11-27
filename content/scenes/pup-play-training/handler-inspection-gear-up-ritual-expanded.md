@@ -18,7 +18,7 @@ materials:
   - Inspection surface, rug, or chair
   - Soft towel or mat
   - Lube / cleaning wipes if relevant
-  - Optional: mirrors for self-inspection practice
+  - "Optional: mirrors for self-inspection practice"
 prep_time_min: 15
 risk_notes:
   - Check leather/neoprene edges and metal snaps for pinch points before tightening.
@@ -81,9 +81,13 @@ variations:
   lighter:
     title: 15-Minute Collar-Only Ritual
     summary: Focus solely on posture presentation, collar fitting, and three core commands.
+    adjustments:
+      - Skip boots, tail, and hood; keep it intimate and quick.
   heavier:
     title: Strict Full-Body & Gear Inspection
     summary: Includes detailed physical inspection, strict silence, and correction for any fidgeting.
+    adjustments:
+      - Add a 2-minute stillness hold between each gear piece.
 aftercare:
   immediate:
     - Deliberate collar/hood removal ritual if temporary.
@@ -91,10 +95,13 @@ aftercare:
     - Water, quiet time, and neck/shoulder rub.
   emotional:
     - Verbal check-in and option for continued contact or space.
+  next_day:
+    - Quick text check-in if the scene continued into deeper play.
 debrief:
   prompts:
     - Did the pacing of the gear-up help you drop into headspace?
     - Any gear fit adjustments needed for next time?
+  check_in_window: Right after collar removal or end of full scene.
 tags:
   - pup-play
   - inspection

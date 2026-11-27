@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { validateAllScenes } from "../scripts/validate-scenes.mjs";
+import {
+  validateAllContent,
+  validateAllLanguagePacks,
+  validateAllScenes,
+  validateAllTaskLibraries,
+} from "../scripts/validate-scenes.mjs";
 import {
   comparePartnerResponses,
   createSharePayload,
@@ -14,16 +19,67 @@ import { MANDATORY_DISCLAIMERS, SHARE_EXPIRY_MS } from "../src/lib/constants.ts"
 import { sceneToMarkdown } from "../src/lib/export.ts";
 import { getAllScenes } from "../src/lib/scenes.ts";
 import {
+  getAllLanguagePacks,
+  getAllResources,
+  getAllTaskLibraries,
+} from "../src/lib/resources.ts";
+import {
   computeActiveBeat,
   computeReadinessSummary,
   getBeatStartSec,
 } from "../src/lib/conductor.ts";
 import { validateImportedBackup } from "../src/lib/storage.ts";
 
-test("all 49 scene markdown templates pass schema validation", () => {
+test("all 55 scene markdown templates pass schema validation", () => {
   const { count, errors } = validateAllScenes();
-  assert.equal(count, 49);
+  assert.equal(count, 55);
   assert.deepEqual(errors, []);
+});
+
+test("language packs, task libraries, and scene ids are unique and complete", () => {
+  const packs = validateAllLanguagePacks();
+  const tasks = validateAllTaskLibraries();
+  const all = validateAllContent();
+
+  assert.equal(packs.count, 1);
+  assert.deepEqual(packs.errors, []);
+  assert.equal(tasks.count, 1);
+  assert.deepEqual(tasks.errors, []);
+  assert.equal(all.scenes, 55);
+  assert.equal(all.languagePacks, 1);
+  assert.equal(all.taskLibraries, 1);
+  assert.deepEqual(all.errors, []);
+
+  const languagePacks = getAllLanguagePacks();
+  const taskLibraries = getAllTaskLibraries();
+  assert.equal(languagePacks.length, 1);
+  assert.equal(taskLibraries.length, 1);
+  assert.equal(languagePacks[0].id, "inspection-and-service-phrases");
+  assert.equal(taskLibraries[0].id, "service-pup-inspection-tasks");
+
+  const taskBody = taskLibraries[0].body;
+  assert.match(taskBody, /## How to Use This Library/);
+  for (let n = 1; n <= 55; n++) {
+    assert.match(taskBody, new RegExp(`^${n}\. `, "m"), `Missing task ${n}`);
+  }
+
+  const requiredIds = [
+    "handler-inspection-gear-up-ritual-expanded",
+    "boot-blacking-full-sequence",
+    "inspection-and-service-phrases",
+    "edging-session-with-dialogue",
+    "collar-acceptance-ceremony-expanded",
+    "high-protocol-evening-expanded",
+    "multi-day-denial-track",
+    "service-pup-inspection-tasks",
+  ];
+  const knownIds = new Set([
+    ...getAllScenes().map((s) => s.id),
+    ...getAllResources().map((r) => r.id),
+  ]);
+  for (const id of requiredIds) {
+    assert.equal(knownIds.has(id), true, `Missing content id ${id}`);
+  }
 });
 
 test("share payload round-trip encode/decode preserves fields", () => {
@@ -80,7 +136,7 @@ test("partner response comparison matrix handles mutual-yes, conditional, and ha
 
 test("markdown export includes YAML frontmatter and all 4 mandatory disclaimers", () => {
   const scenes = getAllScenes();
-  assert.equal(scenes.length, 49);
+  assert.equal(scenes.length, 55);
   const sample = scenes[0];
   const md = sceneToMarkdown(sample, {
     partnerAName: "Jordan",

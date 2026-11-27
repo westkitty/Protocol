@@ -12,7 +12,7 @@ roles: ["Controlling partner", "Denied partner"]
 experience_level: intermediate
 tier: free
 materials:
-  - Optional: chastity device
+  - "Optional: chastity device"
   - Shared notes or check-in method (text, app, voice)
   - Clear calendar of start and end
 prep_time_min: 20
@@ -30,6 +30,15 @@ negotiation:
           label: Daily check-in time and method set
         - id: md-permissions
           label: What requires permission (touch, orgasm, speech about it) defined
+  scripts:
+    - context: Daily Morning Check-In
+      line: "Morning status: energy [1–10], comfort [1–10], anything needed?"
+    - context: Evening Check-In
+      line: "Evening report: what was hard today, any requests, confirmation I'm still in."
+    - context: Permission Requests
+      line: "May I edge?"
+    - context: Ending or Pausing
+      line: "I am pausing the track."
 pre_scene:
   steps:
     - Write down the daily expectations and the exit conditions.
@@ -51,17 +60,28 @@ beats:
 variations:
   lighter:
     title: 3-Day Track
+    summary: A shorter denial period with daily check-ins and a planned end.
+    adjustments:
+      - No device required; honor-system hands-off with a guaranteed end time.
   heavier:
     title: 7-Day with Device
+    summary: A full week with a device and the same daily check-in structure.
+    adjustments:
+      - Mandatory daily physical comfort check while the device is worn.
 aftercare:
   immediate:
     - Explicit end and return to baseline permissions.
+  physical:
+    - Warm shower and rest if pelvic tension built up.
+  emotional:
+    - Debrief mood, frustration, or sub-space highs honestly at the explicit end.
   next_day:
     - Follow-up message about physical and emotional state.
 debrief:
   prompts:
     - What parts of the daily structure worked?
     - What needs to change for a future track?
+  check_in_window: End of track and 24 hours later.
 tags:
   - denial
   - multi-day

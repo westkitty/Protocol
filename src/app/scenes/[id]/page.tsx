@@ -13,10 +13,11 @@ export default async function SceneDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const scene = getSceneById(id);
+  const scenes = getAllScenes();
+  const scene = scenes.find((item) => item.id === id) ?? getSceneById(id);
   if (!scene) {
     notFound();
   }
 
-  return <SceneWorkspace scene={scene} />;
+  return <SceneWorkspace scene={scene} librarySize={scenes.length} />;
 }

@@ -88,7 +88,7 @@ function CollapsibleSection({
   );
 }
 
-export function SceneWorkspace({ scene }: { scene: Scene }) {
+export function SceneWorkspace({ scene, librarySize }: { scene: Scene; librarySize?: number }) {
   const { discreetMode, proUnlocked, setProUnlocked, upsertSavedScene } = useApp();
 
   const [partnerAName, setPartnerAName] = useState("Partner A");
@@ -492,7 +492,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
                 onClick={() => setProUnlocked(true)}
                 className="btn-red inline-flex items-center gap-2 px-4 min-h-[44px] rounded-md text-xs font-semibold"
               >
-                Unlock All 49 Scenes (Preview Mode)
+                Unlock All {librarySize ?? "Library"} Scenes (Preview Mode)
               </button>
             </div>
           </div>

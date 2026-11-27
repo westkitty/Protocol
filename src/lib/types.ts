@@ -107,3 +107,16 @@ export interface SavedCustomScene {
   journalNotes: string;
   updatedAt: number;
 }
+
+export type ResourceKind = "language-pack" | "task-library";
+
+export interface ResourceDocument {
+  id: string;
+  title: string;
+  category: string;
+  category_slug: string;
+  tier: SceneTier;
+  tags: string[];
+  kind: ResourceKind;
+  body: string;
+}

@@ -13,7 +13,7 @@ experience_level: intermediate
 tier: free
 materials:
   - Lube
-  - Optional: cock ring, restraints, blindfold
+  - "Optional: cock ring, restraints, blindfold"
   - Timer or clock
   - Towels
 prep_time_min: 5
@@ -30,6 +30,13 @@ negotiation:
           label: Rules around begging, silence, or required phrases set
         - id: edge-end
           label: How the session ends (permission, ruin, or stop) confirmed
+  scripts:
+    - context: Reporting Closeness
+      line: "Close."
+    - context: Holding the Edge
+      line: "Stay there."
+    - context: Permission or Denial
+      line: "Not yet."
 pre_scene:
   steps:
     - Agree on the exact words that mean "close" and "permission."
@@ -51,14 +58,27 @@ beats:
 variations:
   lighter:
     title: Short Three-Edge Session
+    summary: A compact session with three edges and clear verbal reporting.
+    adjustments:
+      - Keep speech open and encouraging; end in a planned release.
   heavier:
     title: Extended with Speech Restriction
+    summary: A longer build with tighter speech rules and more edges before permission or denial.
+    adjustments:
+      - Confirm the reporting scale and any speech limits before the first edge.
 aftercare:
   immediate:
     - Water and gentle contact or space as preferred.
+  physical:
+    - Clean up, hydrate, and release any restraints.
+  emotional:
+    - Grounding touch or quiet presence, especially after denial or a ruined finish.
+  next_day:
+    - Check in on lingering sensitivity or drop.
 debrief:
   prompts:
     - How clear were the verbal cues?
+  check_in_window: Immediately post-scene.
 tags:
   - edging
   - denial
