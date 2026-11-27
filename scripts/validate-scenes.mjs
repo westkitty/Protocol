@@ -107,14 +107,29 @@ export function validateAllScenes() {
 
     if (!d.variations || !d.variations.lighter || !d.variations.heavier) {
       errors.push(`${rel}: variations.lighter and variations.heavier are required`);
+    } else {
+      for (const key of ["lighter", "heavier"]) {
+        const variation = d.variations[key];
+        if (typeof variation.title !== "string" || !variation.title.trim()) {
+          errors.push(`${rel}: variations.${key}.title is required`);
+        }
+        if (typeof variation.summary !== "string" || !variation.summary.trim()) {
+          errors.push(`${rel}: variations.${key}.summary is required`);
+        }
+        if (!Array.isArray(variation.adjustments) || variation.adjustments.length === 0) {
+          errors.push(`${rel}: variations.${key}.adjustments must be a non-empty array`);
+        }
+      }
     }
 
-    if (
-      !d.aftercare ||
-      !Array.isArray(d.aftercare.immediate) ||
-      d.aftercare.immediate.length === 0
-    ) {
-      errors.push(`${rel}: aftercare.immediate must be non-empty`);
+    if (!d.aftercare) {
+      errors.push(`${rel}: aftercare is required`);
+    } else {
+      for (const key of ["immediate", "physical", "emotional", "next_day"]) {
+        if (!Array.isArray(d.aftercare[key]) || d.aftercare[key].length === 0) {
+          errors.push(`${rel}: aftercare.${key} must be a non-empty array`);
+        }
+      }
     }
 
     if (
@@ -134,14 +149,109 @@ export function validateAllScenes() {
   return { count: files.length, errors };
 }
 
+const PACK_DIR = path.join(process.cwd(), "content", "language-packs");
+const TASK_DIR = path.join(process.cwd(), "content", "task-libraries");
+
+function validateResourceDir(dir, kindLabel) {
+  const errors = [];
+  const items = [];
+  if (!fs.existsSync(dir)) {
+    errors.push(`Missing content directory: ${dir}`);
+    return { count: 0, errors, items };
+  }
+  const files = walk(dir);
+  const seenIds = new Set();
+
+  for (const file of files) {
+    const rel = path.relative(process.cwd(), file);
+    const raw = fs.readFileSync(file, "utf8");
+    const parsed = matter(raw);
+    const d = parsed.data;
+
+    for (const key of ["id", "title", "category", "category_slug"]) {
+      if (typeof d[key] !== "string" || d[key].trim().length === 0) {
+        errors.push(`${rel}: missing or empty string field '${key}'`);
+      }
+    }
+    if (!VALID_TIERS.has(d.tier)) {
+      errors.push(`${rel}: invalid tier '${d.tier}'`);
+    }
+    if (!Array.isArray(d.tags) || d.tags.length === 0) {
+      errors.push(`${rel}: 'tags' must be a non-empty array`);
+    } else if (d.tags.some((item) => typeof item !== "string")) {
+      errors.push(`${rel}: 'tags' must contain only strings`);
+    }
+    if (d.id) {
+      if (seenIds.has(d.id)) {
+        errors.push(`${rel}: duplicate id '${d.id}'`);
+      }
+      seenIds.add(d.id);
+    }
+    if (!parsed.content || parsed.content.trim().length < 20) {
+      errors.push(`${rel}: markdown body must be at least 20 characters`);
+    }
+    items.push({ id: d.id, rel, kind: kindLabel });
+  }
+
+  return { count: files.length, errors, items };
+}
+
+export function validateAllLanguagePacks() {
+  return validateResourceDir(PACK_DIR, "language-pack");
+}
+
+export function validateAllTaskLibraries() {
+  return validateResourceDir(TASK_DIR, "task-library");
+}
+
+export function validateAllContent() {
+  const scenes = validateAllScenes();
+  const packs = validateAllLanguagePacks();
+  const tasks = validateAllTaskLibraries();
+  const errors = [...scenes.errors, ...packs.errors, ...tasks.errors];
+
+  const seen = new Map();
+  const collectIds = (files, dirLabel) => {
+    if (!fs.existsSync(dirLabel === "scenes" ? CONTENT_DIR : dirLabel === "language-packs" ? PACK_DIR : TASK_DIR)) {
+      return;
+    }
+    const dir = dirLabel === "scenes" ? CONTENT_DIR : dirLabel === "language-packs" ? PACK_DIR : TASK_DIR;
+    for (const file of walk(dir)) {
+      const rel = path.relative(process.cwd(), file);
+      const parsed = matter(fs.readFileSync(file, "utf8"));
+      const id = parsed.data.id;
+      if (!id) continue;
+      if (seen.has(id)) {
+        errors.push(`${rel}: duplicate id '${id}' (also in ${seen.get(id)})`);
+      } else {
+        seen.set(id, rel);
+      }
+    }
+  };
+  collectIds(null, "scenes");
+  collectIds(null, "language-packs");
+  collectIds(null, "task-libraries");
+
+  return {
+    scenes: scenes.count,
+    languagePacks: packs.count,
+    taskLibraries: tasks.count,
+    errors,
+  };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { count, errors } = validateAllScenes();
-  if (errors.length > 0) {
-    console.error(`Validation failed (${errors.length} errors across ${count} files):`);
-    for (const err of errors) {
+  const result = validateAllContent();
+  const total = result.scenes + result.languagePacks + result.taskLibraries;
+  if (result.errors.length > 0) {
+    console.error(`Validation failed (${result.errors.length} errors across ${total} files):`);
+    for (const err of result.errors) {
       console.error(` - ${err}`);
     }
     process.exit(1);
   }
-  console.log(`Validated ${count} scenes successfully (0 errors).`);
+  console.log(
+    `Validated ${result.scenes} scenes, ${result.languagePacks} language packs, and ${result.taskLibraries} task libraries successfully (0 errors).`
+  );
 }
+

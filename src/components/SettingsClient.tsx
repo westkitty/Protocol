@@ -4,10 +4,16 @@ import React, { useState } from "react";
 import { Shield, Download, Trash2, Check, Lock } from "lucide-react";
 import { buildOfflineLibraryMarkdown } from "@/lib/export";
 import { validateImportedBackup } from "@/lib/storage";
-import type { Scene } from "@/lib/types";
+import type { ResourceDocument, Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
 
-export function SettingsClient({ scenes }: { scenes: Scene[] }) {
+export function SettingsClient({
+  scenes,
+  resources = [],
+}: {
+  scenes: Scene[];
+  resources?: ResourceDocument[];
+}) {
   const {
     discreetMode,
     setDiscreetMode,
@@ -26,7 +32,7 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
 
   const handleDownloadOfflineLibrary = () => {
-    const bundle = buildOfflineLibraryMarkdown(scenes);
+    const bundle = buildOfflineLibraryMarkdown(scenes, resources);
     const blob = new Blob([bundle], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -1,5 +1,6 @@
 import { MANDATORY_DISCLAIMERS } from "./constants.ts";
-import type { ResponseValue, Scene } from "./types.ts";
+import type { ResourceDocument, ResponseValue, Scene } from "./types.ts";
+import { resourceKindLabel } from "./resource-meta.ts";
 
 export interface ExportCustomState {
   customTitle?: string;
@@ -135,14 +136,53 @@ export function sceneToMarkdown(scene: Scene, custom?: ExportCustomState): strin
   return lines.join("\n");
 }
 
-export function buildOfflineLibraryMarkdown(scenes: Scene[]): string {
+export function resourceToMarkdown(resource: ResourceDocument): string {
+  const lines: string[] = [];
+  lines.push("---");
+  lines.push(`id: ${resource.id}`);
+  lines.push(`title: "${resource.title.replace(/"/g, '\\"')}"`);
+  lines.push(`kind: ${resource.kind}`);
+  lines.push(`category: "${resource.category}"`);
+  lines.push(`tier: ${resource.tier}`);
+  lines.push(`tags: [${resource.tags.join(", ")}]`);
+  lines.push("---");
+  lines.push("");
+  if (resource.body) {
+    lines.push(resource.body);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+export function buildOfflineLibraryMarkdown(
+  scenes: Scene[],
+  resources: ResourceDocument[] = []
+): string {
   const header = [
     "# Protocol — Complete Offline Scene Library",
-    `Exported ${scenes.length} structured scenes (Obsidian & Markdown compatible).`,
+    `Exported ${scenes.length} structured scenes, ${resources.filter((r) => r.kind === "language-pack").length} language packs, and ${resources.filter((r) => r.kind === "task-library").length} task libraries (Obsidian & Markdown compatible).`,
     "",
     "---",
     "",
   ].join("\n");
 
-  return header + scenes.map((s) => sceneToMarkdown(s)).join("\n\n========================================\n\n");
+  const sceneBlock = scenes.map((s) => sceneToMarkdown(s)).join("\n\n========================================\n\n");
+  if (resources.length === 0) {
+    return header + sceneBlock;
+  }
+
+  const resourceHeader = [
+    "",
+    "",
+    "========================================",
+    "",
+    "# Language Packs & Task Libraries",
+    "",
+  ].join("\n");
+
+  const resourceBlock = resources
+    .map((r) => `## ${resourceKindLabel(r.kind)}\n\n` + resourceToMarkdown(r))
+    .join("\n\n========================================\n\n");
+
+  return header + sceneBlock + resourceHeader + resourceBlock;
 }
