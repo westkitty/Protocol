@@ -4,6 +4,8 @@ import { AppProvider } from "@/context/AppContext";
 import { Header } from "@/components/Header";
 import { SafetyBanner } from "@/components/SafetyBanner";
 import { getAllScenes } from "@/lib/scenes";
+import { getAllResources } from "@/lib/resources";
+import { resourceHref, resourceKindLabel } from "@/lib/resource-meta";
 import "./globals.css";
 
 const barlow = Barlow_Condensed({
@@ -29,14 +31,28 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const sceneIndex = getAllScenes().map((s) => ({
-    id: s.id,
-    title: s.title,
-    discreet_title: s.discreet_title,
-    category: s.category,
-    category_slug: s.category_slug,
-    intensity: s.intensity,
-  }));
+  const sceneIndex = [
+    ...getAllScenes().map((s) => ({
+      id: s.id,
+      title: s.title,
+      discreet_title: s.discreet_title,
+      category: s.category,
+      category_slug: s.category_slug,
+      intensity: s.intensity,
+      kind: "scene" as const,
+      href: `/scenes/${s.id}`,
+    })),
+    ...getAllResources().map((r) => ({
+      id: r.id,
+      title: r.title,
+      discreet_title: r.title,
+      category: r.category,
+      category_slug: r.category_slug,
+      intensity: resourceKindLabel(r.kind),
+      kind: r.kind,
+      href: resourceHref(r),
+    })),
+  ];
 
   return (
     <html lang="en" className={`${barlow.variable} ${inter.variable}`}>

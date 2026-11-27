@@ -30,6 +30,15 @@ negotiation:
           label: Required positions and when they apply confirmed
         - id: hp-service
           label: Service tasks during the evening listed
+  scripts:
+    - context: Activating Protocol
+      line: "Protocol begins now."
+    - context: During Dinner Service
+      line: "Pour."
+    - context: Position Corrections
+      line: "Adjust."
+    - context: Ending Protocol
+      line: "Protocol ends. You may speak freely."
 pre_scene:
   steps:
     - Review the evening timeline and speech rules together.
@@ -55,14 +64,27 @@ beats:
 variations:
   lighter:
     title: Protocol Dinner Only
+    summary: Keep formal protocol through dinner service, then return to casual speech.
+    adjustments:
+      - Relax titles and posture rules after the main course.
   heavier:
     title: Full Evening with Restricted Speech
+    summary: Protocol stays in force for the whole evening, including tighter speech rules.
+    adjustments:
+      - Brief any guests in advance and keep requests routed through the person holding protocol.
 aftercare:
   immediate:
     - Explicit end-of-protocol cue and return to casual speech.
+  physical:
+    - Remove tight dress boots or harness and hydrate.
+  emotional:
+    - Praise specific moments of poise and attention after the end-of-protocol cue.
+  next_day:
+    - Share a casual meal or coffee together out of protocol.
 debrief:
   prompts:
     - Which rules felt sustainable? Which need adjustment?
+  check_in_window: Next morning over coffee.
 tags:
   - protocol
   - dinner

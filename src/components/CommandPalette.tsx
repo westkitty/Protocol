@@ -14,6 +14,8 @@ export interface SceneIndexItem {
   category: string;
   category_slug: string;
   intensity: string;
+  kind?: "scene" | "language-pack" | "task-library";
+  href?: string;
 }
 
 export function CommandPalette({
@@ -117,7 +119,7 @@ export function CommandPalette({
           sub: `${displayCat} • ${s.intensity}`,
           categorySlug: s.category_slug,
           run: () => {
-            router.push(`/scenes/${s.id}`);
+            router.push(s.href || `/scenes/${s.id}`);
             onClose();
           },
         };
@@ -180,8 +182,8 @@ export function CommandPalette({
             aria-activedescendant={activeOptionId}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Jump to any scene or action (e.g. boot, pup, collar, discreet)..."
-            aria-label="Search commands and scenes"
+            placeholder="Jump to any scene, pack, task, or action (e.g. boot, pup, collar, discreet)..."
+            aria-label="Search commands, scenes, language packs, and task libraries"
             className="flex-1 min-h-[50px] bg-transparent text-sm text-[#F5F5F7] placeholder:text-[#9A9A9A] focus:outline-none"
           />
           <button
@@ -197,7 +199,7 @@ export function CommandPalette({
         <ul id="cmd-listbox" role="listbox" className="max-h-80 overflow-y-auto p-2 space-y-1">
           {items.length === 0 ? (
             <li className="px-3 py-6 text-center text-xs text-[#A6A6B2]">
-              No matching scenes or actions.
+              No matching scenes, packs, or actions.
             </li>
           ) : (
             items.map((item, idx) => {
@@ -252,7 +254,16 @@ export function CommandPalette({
 
         <div className="px-4 py-2 border-t border-[#27272F] bg-[#070709] flex items-center justify-between text-[11px] text-[#A6A6B2]">
           <span>↑↓ Navigate • Enter Select • Esc Close</span>
-          <span>49 Scenes Indexed</span>
+          <span>
+            {scenes.filter((s) => !s.kind || s.kind === "scene").length} Scenes
+            {scenes.some((s) => s.kind === "language-pack")
+              ? ` • ${scenes.filter((s) => s.kind === "language-pack").length} Packs`
+              : ""}
+            {scenes.some((s) => s.kind === "task-library")
+              ? ` • ${scenes.filter((s) => s.kind === "task-library").length} Task Libraries`
+              : ""}{" "}
+            Indexed
+          </span>
         </div>
       </div>
     </div>
