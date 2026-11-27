@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Settings, Shield, Download, Trash2, Check, Lock } from "lucide-react";
+import { Shield, Download, Trash2, Check, Lock } from "lucide-react";
 import { buildOfflineLibraryMarkdown } from "@/lib/export";
 import type { SavedCustomScene, Scene } from "@/lib/types";
 import { useApp } from "@/context/AppContext";
@@ -20,6 +20,7 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
   } = useApp();
 
   const [wipedNotice, setWipedNotice] = useState(false);
+  const [confirmingWipe, setConfirmingWipe] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
 
   const handleDownloadOfflineLibrary = () => {
@@ -57,94 +58,97 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
       }
       importSavedScenes(parsed);
     } catch {
-      setImportError("Could not parse backup JSON file.");
+      setImportError(
+        "Could not parse backup JSON file. Select a valid protocol-personal-library-backup.json export."
+      );
     }
   };
 
-  const handleWipe = () => {
+  const handleConfirmWipe = () => {
     wipeAll();
+    setConfirmingWipe(false);
     setWipedNotice(true);
     window.setTimeout(() => setWipedNotice(false), 3000);
   };
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-[#C4A35A]">
-          <Settings className="w-4 h-4" />
-          <span>Preferences, Privacy &amp; Offline Exports</span>
-        </div>
-        <h1 className="font-heading text-3xl font-bold uppercase text-[#F5F5F0]">
+      <header className="space-y-1.5">
+        <h1 className="font-heading text-3xl font-bold uppercase text-[#F5F5F7]">
           Settings &amp; Local-First Export
         </h1>
+        <p className="text-sm text-[#A6A6B2]">
+          Configure discreet display, red accent glow, and offline Obsidian-compatible exports.
+        </p>
       </header>
 
       {/* Privacy Guarantee */}
-      <section className="rounded-lg border border-[#333333] bg-[#1A1A1A] p-5 space-y-2">
+      <section className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-5 space-y-2">
         <div className="flex items-center gap-2 text-sm font-semibold text-[#88B897]">
           <Shield className="w-4 h-4" />
           <span>Privacy-First Architecture</span>
         </div>
-        <p className="text-xs text-[#A0A0A0] leading-relaxed">
+        <p className="text-xs text-[#A6A6B2] leading-relaxed">
           Protocol stores zero user-filled negotiation data on any server. Partner share links
           encode responses directly into the URL hash fragment (<code>#share=...</code>) and
-          automatically expire after 72 hours. Personal Library notes stay exclusively in your
-          browser&apos;s localStorage.
+          automatically expire after 72 hours. Personal Library notes and drafts stay exclusively
+          in your browser&apos;s localStorage.
         </p>
       </section>
 
       {/* Appearance & Mode */}
-      <section className="rounded-lg border border-[#333333] bg-[#1A1A1A] p-5 space-y-4">
-        <h2 className="font-heading text-lg font-bold uppercase text-[#F5F5F0]">
+      <section className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-5 space-y-4">
+        <h2 className="font-heading text-lg font-bold uppercase text-[#F5F5F7]">
           Display &amp; Access
         </h2>
 
-        <div className="flex items-center justify-between gap-4 py-2 border-b border-[#2A2A2A]">
+        <div className="flex items-center justify-between gap-4 py-2 border-b border-[#1F1F27]">
           <div>
-            <div className="text-sm font-medium text-[#F5F5F0]">Discreet Mode</div>
-            <div className="text-xs text-[#A0A0A0]">
+            <div className="text-sm font-medium text-[#F5F5F7]">Discreet Mode</div>
+            <div className="text-xs text-[#A6A6B2]">
               Neutralizes scene titles, categories, and browser tab to &ldquo;Field Notes&rdquo;.
             </div>
           </div>
           <button
             type="button"
+            aria-pressed={discreetMode}
             onClick={() => setDiscreetMode(!discreetMode)}
-            className={`px-3.5 py-2 rounded text-xs font-semibold border ${
-              discreetMode
-                ? "border-[#C4A35A] bg-[#C4A35A]/20 text-[#E0C37C]"
-                : "border-[#333333] bg-[#242424] text-[#A0A0A0]"
+            className={`px-4 min-h-[44px] rounded text-xs font-semibold ${
+              discreetMode ? "btn-red" : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
             }`}
           >
             {discreetMode ? "Enabled" : "Disabled"}
           </button>
         </div>
 
-        <div className="flex items-center justify-between gap-4 py-2 border-b border-[#2A2A2A]">
+        <div className="flex items-center justify-between gap-4 py-2 border-b border-[#1F1F27]">
           <div>
-            <div className="text-sm font-medium text-[#F5F5F0]">Accent Palette</div>
-            <div className="text-xs text-[#A0A0A0]">
-              Switch between Leather Brown (#8B4513) and Deep Burgundy (#6B2D3C).
+            <div className="text-sm font-medium text-[#F5F5F7]">Red Glow Accent</div>
+            <div className="text-xs text-[#A6A6B2]">
+              Switch between Crimson Red (#C41E2E) and Deep Burgundy (#8B1A2B).
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 glow-rail">
             <button
               type="button"
-              onClick={() => setAccentTheme("leather")}
-              className={`px-3 py-1.5 rounded text-xs font-medium border ${
-                accentTheme === "leather"
-                  ? "border-[#8B4513] bg-[#8B4513] text-white"
-                  : "border-[#333333] bg-[#242424] text-[#A0A0A0]"
+              aria-pressed={accentTheme === "crimson"}
+              onClick={() => setAccentTheme("crimson")}
+              className={`px-3.5 min-h-[44px] rounded text-xs font-semibold ${
+                accentTheme === "crimson"
+                  ? "btn-red"
+                  : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
               }`}
             >
-              Leather
+              Crimson
             </button>
             <button
               type="button"
+              aria-pressed={accentTheme === "burgundy"}
               onClick={() => setAccentTheme("burgundy")}
-              className={`px-3 py-1.5 rounded text-xs font-medium border ${
+              className={`px-3.5 min-h-[44px] rounded text-xs font-semibold ${
                 accentTheme === "burgundy"
-                  ? "border-[#6B2D3C] bg-[#6B2D3C] text-white"
-                  : "border-[#333333] bg-[#242424] text-[#A0A0A0]"
+                  ? "btn-red"
+                  : "glow-neighbor text-[#A6A6B2] hover:text-[#F5F5F7]"
               }`}
             >
               Burgundy
@@ -154,20 +158,19 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
 
         <div className="flex items-center justify-between gap-4 py-2">
           <div>
-            <div className="text-sm font-medium text-[#F5F5F0]">
+            <div className="text-sm font-medium text-[#F5F5F7]">
               Full Library Access ({scenes.length} Scenes)
             </div>
-            <div className="text-xs text-[#A0A0A0]">
+            <div className="text-xs text-[#A6A6B2]">
               Toggle Pro Library unlock preview (free tier includes 8 core starter scenes).
             </div>
           </div>
           <button
             type="button"
+            aria-pressed={proUnlocked}
             onClick={() => setProUnlocked(!proUnlocked)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded text-xs font-semibold border ${
-              proUnlocked
-                ? "border-[#4A7C59] bg-[#4A7C59]/20 text-[#88B897]"
-                : "border-[#333333] bg-[#242424] text-[#F5F5F0]"
+            className={`inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded text-xs font-semibold ${
+              proUnlocked ? "btn-red" : "glow-neighbor text-[#F5F5F7]"
             }`}
           >
             <Lock className="w-3.5 h-3.5" />
@@ -177,21 +180,20 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
       </section>
 
       {/* Offline Exports */}
-      <section className="rounded-lg border border-[#333333] bg-[#1A1A1A] p-5 space-y-4">
-        <h2 className="font-heading text-lg font-bold uppercase text-[#F5F5F0]">
+      <section className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-5 space-y-4">
+        <h2 className="font-heading text-lg font-bold uppercase text-[#F5F5F7]">
           Offline &amp; Obsidian Exports
         </h2>
-        <p className="text-xs text-[#A0A0A0]">
+        <p className="text-xs text-[#A6A6B2]">
           Download the entire {scenes.length}-scene library as plain Markdown with YAML frontmatter
           for offline use or import into Obsidian.
         </p>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 glow-rail">
           <button
             type="button"
             onClick={handleDownloadOfflineLibrary}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-xs font-semibold text-[#F5F5F0]"
-            style={{ backgroundColor: "var(--accent)" }}
+            className="btn-red inline-flex items-center gap-2 px-4 min-h-[44px] rounded text-xs font-semibold"
           >
             <Download className="w-4 h-4" />
             <span>Download Full Library (.md)</span>
@@ -200,44 +202,69 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
           <button
             type="button"
             onClick={handleExportJsonBackup}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-xs font-medium border border-[#333333] bg-[#242424] text-[#F5F5F0]"
+            className="glow-neighbor inline-flex items-center gap-2 px-4 min-h-[44px] rounded text-xs font-medium"
           >
             <Download className="w-4 h-4" />
             <span>Backup Personal Library (.json)</span>
           </button>
 
-          <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-xs font-medium border border-[#333333] bg-[#242424] text-[#F5F5F0] cursor-pointer">
+          <label className="glow-neighbor inline-flex items-center gap-2 px-4 min-h-[44px] rounded text-xs font-medium cursor-pointer">
             <span>Restore Backup (.json)</span>
             <input
               type="file"
               accept=".json"
               onChange={handleImportJsonBackup}
-              className="hidden"
+              className="sr-only"
             />
           </label>
         </div>
 
-        {importError && <p className="text-xs text-[#D98282]">{importError}</p>}
+        {importError && (
+          <p role="alert" className="text-xs text-[#FCA5A5]">
+            {importError}
+          </p>
+        )}
       </section>
 
-      {/* Wipe Local Data */}
-      <section className="rounded-lg border border-[#8B3A3A]/60 bg-[#1A1A1A] p-5 flex flex-wrap items-center justify-between gap-4">
+      {/* Wipe Local Data (with 2-step confirmation) */}
+      <section className="card-elevated rounded-lg border border-[#C41E2E]/60 bg-[#101014] p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="font-heading text-lg font-bold uppercase text-[#D98282]">
+          <h2 className="font-heading text-lg font-bold uppercase text-[#FCA5A5]">
             Wipe All Local Data
           </h2>
-          <p className="text-xs text-[#A0A0A0]">
-            Immediately clears saved scenes, journal notes, track progress, and preferences.
+          <p className="text-xs text-[#A6A6B2]">
+            Clears saved scenes, drafts, journal notes, track progress, and preferences.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleWipe}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded text-xs font-semibold bg-[#8B3A3A] hover:bg-[#9E4545] text-white"
-        >
-          {wipedNotice ? <Check className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
-          <span>{wipedNotice ? "Local Data Cleared" : "Wipe Local Data"}</span>
-        </button>
+
+        {confirmingWipe ? (
+          <div className="flex items-center gap-2 glow-rail">
+            <button
+              type="button"
+              onClick={() => setConfirmingWipe(false)}
+              className="glow-neighbor px-4 min-h-[44px] rounded text-xs font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmWipe}
+              className="btn-red inline-flex items-center gap-2 px-4 min-h-[44px] rounded text-xs font-semibold"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Yes, Erase Everything</span>
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirmingWipe(true)}
+            className="btn-red inline-flex items-center gap-2 px-4 min-h-[44px] rounded text-xs font-semibold"
+          >
+            {wipedNotice ? <Check className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
+            <span>{wipedNotice ? "Local Data Cleared" : "Wipe Local Data"}</span>
+          </button>
+        )}
       </section>
     </div>
   );

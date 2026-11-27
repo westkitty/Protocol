@@ -35,7 +35,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [discreetMode, setDiscreetModeState] = useState(false);
-  const [accentTheme, setAccentThemeState] = useState<AccentTheme>("leather");
+  const [accentTheme, setAccentThemeState] = useState<AccentTheme>("crimson");
   const [proUnlocked, setProUnlockedState] = useState(false);
   const [savedScenes, setSavedScenes] = useState<SavedCustomScene[]>([]);
   const [completedTracks, setCompletedTracks] = useState<Record<string, boolean>>({});
@@ -59,10 +59,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    const accent = accentTheme === "burgundy" ? "#6B2D3C" : "#8B4513";
-    const accentHover = accentTheme === "burgundy" ? "#82384A" : "#A3541C";
+    const isBurgundy = accentTheme === "burgundy";
+    const accent = isBurgundy ? "#8B1A2B" : "#C41E2E";
+    const accentHover = isBurgundy ? "#A32135" : "#DC2626";
+    const glow = isBurgundy ? "rgba(163, 33, 53, 0.48)" : "rgba(220, 38, 38, 0.48)";
+    const glowSoft = isBurgundy ? "rgba(163, 33, 53, 0.24)" : "rgba(220, 38, 38, 0.22)";
     document.documentElement.style.setProperty("--accent", accent);
     document.documentElement.style.setProperty("--accent-hover", accentHover);
+    document.documentElement.style.setProperty("--accent-glow", glow);
+    document.documentElement.style.setProperty("--accent-glow-soft", glowSoft);
   }, [accentTheme, hydrated]);
 
   const setDiscreetMode = (val: boolean) => {
@@ -116,7 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const wipeAll = () => {
     wipeAllLocalData();
     setDiscreetModeState(false);
-    setAccentThemeState("leather");
+    setAccentThemeState("crimson");
     setProUnlockedState(false);
     setSavedScenes([]);
     setCompletedTracks({});
