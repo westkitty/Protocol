@@ -2,6 +2,7 @@ import { MANDATORY_DISCLAIMERS } from "./constants.ts";
 import type { ResponseValue, Scene } from "./types.ts";
 
 export interface ExportCustomState {
+  customTitle?: string;
   partnerAName?: string;
   partnerBName?: string;
   responses?: Record<string, ResponseValue>;
@@ -12,10 +13,11 @@ export interface ExportCustomState {
 
 export function sceneToMarkdown(scene: Scene, custom?: ExportCustomState): string {
   const lines: string[] = [];
+  const effectiveTitle = custom?.customTitle?.trim() || scene.title;
 
   lines.push("---");
   lines.push(`id: ${scene.id}`);
-  lines.push(`title: "${scene.title.replace(/"/g, '\\"')}"`);
+  lines.push(`title: "${effectiveTitle.replace(/"/g, '\\"')}"`);
   lines.push(`category: "${scene.category}"`);
   lines.push(`intensity: ${scene.intensity}`);
   lines.push(`experience_level: ${scene.experience_level}`);
@@ -24,7 +26,7 @@ export function sceneToMarkdown(scene: Scene, custom?: ExportCustomState): strin
   lines.push(`tags: [${scene.tags.join(", ")}]`);
   lines.push("---");
   lines.push("");
-  lines.push(`# ${scene.title}`);
+  lines.push(`# ${effectiveTitle}`);
   lines.push("");
   lines.push(
     `**Category:** ${scene.category} | **Duration:** ${scene.duration_min}–${scene.duration_max} min | **Intensity:** ${scene.intensity} | **Level:** ${scene.experience_level}`

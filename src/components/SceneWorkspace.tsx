@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -126,10 +126,23 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     setDraftLoaded(true);
   }, [scene.id]);
 
-  // Auto-persist draft to localStorage
+  const hasDraftEdits =
+    Object.keys(responses).length > 0 ||
+    Object.values(completedItems).some(Boolean) ||
+    Object.values(notes).some((n) => n.trim().length > 0) ||
+    customLimits.trim().length > 0 ||
+    customTitle.trim().length > 0 ||
+    partnerAName !== "Partner A" ||
+    partnerBName !== "Partner B";
+
+  // Auto-persist draft to localStorage only when edits exist
   useEffect(() => {
     if (!draftLoaded) return;
     const timer = window.setTimeout(() => {
+      if (!hasDraftEdits) {
+        clearSceneDraft(scene.id);
+        return;
+      }
       saveSceneDraft(scene.id, {
         partnerAName,
         partnerBName,
@@ -144,6 +157,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     return () => window.clearTimeout(timer);
   }, [
     draftLoaded,
+    hasDraftEdits,
     scene.id,
     partnerAName,
     partnerBName,
@@ -195,6 +209,11 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     [scene, responses]
   );
 
+  const handleActiveBeatChange = useCallback((idx: number, isRun: boolean) => {
+    setActiveBeatIndex(idx);
+    setTimerRunning(isRun);
+  }, []);
+
   const handleMarkSectionYes = (items: { id: string }[]) => {
     setResponses((prev) => {
       const next = { ...prev };
@@ -212,13 +231,6 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     });
   };
 
-  const hasDraftEdits =
-    ratedCount > 0 ||
-    completedCount > 0 ||
-    Object.values(notes).some((n) => n.trim().length > 0) ||
-    customLimits.trim().length > 0 ||
-    customTitle.trim().length > 0;
-
   const handleResetDraft = () => {
     clearSceneDraft(scene.id);
     setPartnerAName("Partner A");
@@ -234,6 +246,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
   const handleExportMarkdown = () => {
     setExportMenuOpen(false);
     const md = sceneToMarkdown(scene, {
+      customTitle: displayTitle,
       partnerAName,
       partnerBName,
       responses,
@@ -247,7 +260,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     a.href = url;
     a.download = `${scene.id}.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleSaveToLibrary = () => {
@@ -277,7 +290,8 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
     });
     const encoded = encodeSharePayload(payload);
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const url = `${origin}/compare/#share=${encoded}`;
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+    const url = `${origin}${basePath}/compare/#share=${encoded}`;
     setShareUrl(url);
     setCopied(false);
   };
@@ -599,10 +613,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
               defaultMinutes={scene.duration_min}
               beats={scene.beats}
               jumpSignal={jumpSignal}
-              onActiveBeatChange={(idx, isRun) => {
-                setActiveBeatIndex(idx);
-                setTimerRunning(isRun);
-              }}
+              onActiveBeatChange={handleActiveBeatChange}
             />
 
             <div className="card-elevated rounded-lg border border-[#27272F] bg-[#101014] p-4 space-y-3">

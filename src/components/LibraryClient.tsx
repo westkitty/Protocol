@@ -44,7 +44,7 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
       if (tierFilter === "free" && scene.tier !== "free") return false;
 
       if (durationFilter === "short" && scene.duration_max > 45) return false;
-      if (durationFilter === "medium" && (scene.duration_max <= 45 || scene.duration_min > 120))
+      if (durationFilter === "medium" && (scene.duration_max <= 45 || scene.duration_max > 120))
         return false;
       if (durationFilter === "extended" && scene.duration_max <= 120) return false;
 
@@ -112,7 +112,7 @@ export function LibraryClient({ scenes }: { scenes: Scene[] }) {
       {/* Hero / Lead Magnet Banner */}
       <section className="card-elevated relative overflow-hidden rounded-xl border border-[#27272F] bg-[#101014] p-4 sm:p-6">
         <Image
-          src="/assets/hero-leather-grid.svg"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/assets/hero-leather-grid.svg`}
           alt=""
           fill
           priority

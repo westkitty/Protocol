@@ -32,15 +32,47 @@ export function encodeSharePayload(payload: SharePayload): string {
 
 export function decodeSharePayload(encoded: string): SharePayload | null {
   try {
-    const clean = encoded.replace(/^#?share=/, "").trim();
+    const trimmed = encoded.trim();
+    if (!trimmed) return null;
+    const match = trimmed.match(/(?:#|\b)share=([^&\s]+)/);
+    const clean = match ? match[1] : trimmed;
     if (!clean) return null;
     const json = LZString.decompressFromEncodedURIComponent(clean);
     if (!json) return null;
-    const parsed = JSON.parse(json) as SharePayload;
-    if (parsed.v !== 1 || !parsed.sceneId || typeof parsed.expiresAt !== "number") {
+    const parsed = JSON.parse(json) as Partial<SharePayload>;
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      parsed.v !== 1 ||
+      typeof parsed.sceneId !== "string" ||
+      parsed.sceneId.trim().length === 0 ||
+      typeof parsed.expiresAt !== "number" ||
+      !Number.isFinite(parsed.expiresAt) ||
+      !parsed.responses ||
+      typeof parsed.responses !== "object" ||
+      Array.isArray(parsed.responses)
+    ) {
       return null;
     }
-    return parsed;
+    return {
+      v: 1,
+      sceneId: parsed.sceneId,
+      partnerAName:
+        typeof parsed.partnerAName === "string" && parsed.partnerAName.trim()
+          ? parsed.partnerAName
+          : "Partner A",
+      createdAt:
+        typeof parsed.createdAt === "number" && Number.isFinite(parsed.createdAt)
+          ? parsed.createdAt
+          : Date.now(),
+      expiresAt: parsed.expiresAt,
+      responses: parsed.responses,
+      notes:
+        parsed.notes && typeof parsed.notes === "object" && !Array.isArray(parsed.notes)
+          ? parsed.notes
+          : {},
+      customLimits: typeof parsed.customLimits === "string" ? parsed.customLimits : "",
+    };
   } catch {
     return null;
   }

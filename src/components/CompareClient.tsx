@@ -25,12 +25,15 @@ export function CompareClient({ scenes }: { scenes: Scene[] }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.location.hash.includes("share=")) {
-      const decoded = decodeSharePayload(window.location.hash);
-      if (decoded) {
+    const syncFromHash = () => {
+      if (window.location.hash.includes("share=")) {
+        const decoded = decodeSharePayload(window.location.hash);
         setPayload(decoded);
       }
-    }
+    };
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
   }, []);
 
   const handleLoadInput = (e: React.FormEvent) => {
@@ -110,7 +113,7 @@ export function CompareClient({ scenes }: { scenes: Scene[] }) {
     a.href = url;
     a.download = `${scene.id}-agreement.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -182,6 +185,36 @@ export function CompareClient({ scenes }: { scenes: Scene[] }) {
               {payload.partnerAName} to generate a fresh link.
             </p>
           </div>
+        </div>
+      )}
+
+      {payload && !expired && !scene && (
+        <div
+          role="alert"
+          className="card-elevated rounded-lg border border-[#C41E2E] bg-[#C41E2E]/15 p-5 space-y-3"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-[#FCA5A5] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <h2 className="font-heading text-lg font-bold text-[#F5F5F7]">
+                Unknown Scene Template in Share Link
+              </h2>
+              <p className="text-xs text-[#D4D4CE]">
+                The scene ID (<code>{payload.sceneId}</code>) in this share link does not match any
+                template in the library. Ask {payload.partnerAName} for a fresh link.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPayload(null);
+              setRawInput("");
+            }}
+            className="glow-neighbor px-3.5 min-h-[40px] rounded text-xs font-medium"
+          >
+            Load Different Link
+          </button>
         </div>
       )}
 

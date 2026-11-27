@@ -23,6 +23,7 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
   const [wipedNotice, setWipedNotice] = useState(false);
   const [confirmingWipe, setConfirmingWipe] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
 
   const handleDownloadOfflineLibrary = () => {
     const bundle = buildOfflineLibraryMarkdown(scenes);
@@ -32,7 +33,7 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
     a.href = url;
     a.download = "protocol-offline-scene-library.md";
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleExportJsonBackup = () => {
@@ -44,12 +45,14 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
     a.href = url;
     a.download = "protocol-personal-library-backup.json";
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleImportJsonBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setImportError(null);
-    const file = e.target.files?.[0];
+    setImportSuccess(null);
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
     try {
       const text = await file.text();
@@ -60,10 +63,13 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
         return;
       }
       importSavedScenes(check.data);
+      setImportSuccess(`Restored ${check.data.length} saved scene(s) from backup.`);
     } catch {
       setImportError(
         "Could not parse JSON syntax. Select a valid protocol-personal-library-backup.json export."
       );
+    } finally {
+      input.value = "";
     }
   };
 
@@ -221,6 +227,12 @@ export function SettingsClient({ scenes }: { scenes: Scene[] }) {
             />
           </label>
         </div>
+
+        {importSuccess && (
+          <p role="status" aria-live="polite" className="text-xs text-[#88B897]">
+            {importSuccess}
+          </p>
+        )}
 
         {importError && (
           <p role="alert" className="text-xs text-[#FCA5A5]">

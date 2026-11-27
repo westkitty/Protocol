@@ -61,6 +61,7 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
     if (!baseScene) return;
 
     const md = sceneToMarkdown(baseScene, {
+      customTitle: saved.customTitle,
       partnerAName: saved.partnerAName,
       partnerBName: saved.partnerBName,
       responses: saved.responses,
@@ -74,7 +75,7 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
     a.href = url;
     a.download = `${saved.sceneId}-custom.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
@@ -232,7 +233,13 @@ export function PersonalLibraryClient({ scenes }: { scenes: Scene[] }) {
                           type="button"
                           onClick={() => toggleTrackScene(sceneId)}
                           aria-pressed={done}
-                          aria-label={`Mark ${scene?.title || sceneId} complete`}
+                          aria-label={`Mark ${
+                            scene
+                              ? discreetMode
+                                ? scene.discreet_title
+                                : scene.title
+                              : sceneId
+                          } complete`}
                           className="min-h-[44px] min-w-[44px] -ml-2.5 flex items-center justify-center text-[#A6A6B2] hover:text-[#F5F5F7] shrink-0"
                         >
                           {done ? (

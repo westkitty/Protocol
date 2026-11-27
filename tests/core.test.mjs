@@ -188,3 +188,30 @@ test("validateImportedBackup rejects malformed payloads with field-level errors"
   ]);
   assert.equal(valid.ok, true);
 });
+
+test("decodeSharePayload parses full GitHub Pages URLs and rejects malformed payloads", () => {
+  const now = 1_700_000_000_000;
+  const payload = createSharePayload({
+    sceneId: "full-scene-negotiation-framework",
+    partnerAName: "Alex",
+    responses: { "container-datetime": "yes" },
+    notes: {},
+    now,
+  });
+  const encoded = encodeSharePayload(payload);
+  const fullUrl = `https://westkitty.github.io/Protocol/compare/#share=${encoded}`;
+  const decoded = decodeSharePayload(fullUrl);
+  assert.ok(decoded);
+  assert.equal(decoded.sceneId, "full-scene-negotiation-framework");
+  assert.equal(decoded.responses["container-datetime"], "yes");
+
+  // Tampered payload missing responses object
+  assert.equal(decodeSharePayload("not-valid-lz"), null);
+});
+
+test("sceneToMarkdown respects customTitle when provided", () => {
+  const sample = getAllScenes()[0];
+  const md = sceneToMarkdown(sample, { customTitle: "Friday Night Session" });
+  assert.ok(md.includes('title: "Friday Night Session"'));
+  assert.ok(md.includes("# Friday Night Session"));
+});
