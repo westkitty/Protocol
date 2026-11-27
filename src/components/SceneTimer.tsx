@@ -228,9 +228,9 @@ export function SceneTimer({
             aria-pressed={chimeEnabled}
             onClick={() => setChimeEnabled((c) => !c)}
             title="Toggle gentle audio chime on beat transitions and check-ins"
-            className={`inline-flex items-center gap-1 px-2.5 min-h-[34px] rounded border text-[11px] ${
+            className={`inline-flex items-center gap-1 px-3 min-h-[44px] sm:min-h-[36px] rounded border text-[11px] ${
               chimeEnabled
-                ? "border-[#C41E2E]/70 bg-[#C41E2E]/20 text-[#FCA5A5]"
+                ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[#FCA5A5]"
                 : "border-[#27272F] bg-[#17171C] text-[#A6A6B2]"
             }`}
           >

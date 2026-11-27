@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { CATEGORIES } from "@/lib/constants";
 import { useApp } from "@/context/AppContext";
 import { CategoryEmblem } from "./CategoryEmblem";
 
@@ -29,13 +30,20 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
+      prevFocusRef.current = document.activeElement as HTMLElement | null;
       setQuery("");
       setSelectedIndex(0);
       window.setTimeout(() => inputRef.current?.focus(), 20);
+    } else if (!open && wasOpenRef.current) {
+      prevFocusRef.current?.focus();
     }
+    wasOpenRef.current = open;
   }, [open]);
 
   const items = useMemo(() => {
@@ -67,7 +75,7 @@ export function CommandPalette({
         kind: "action" as const,
         id: "action-library",
         label: "Open Personal Library",
-        sub: "Saved scenes, private notes & training tracks",
+        sub: "Saved sessions, private notes & training tracks",
         categorySlug: "pup-play-training",
         run: () => {
           router.push("/library");
@@ -99,17 +107,21 @@ export function CommandPalette({
           .includes(q);
       })
       .slice(0, 8)
-      .map((s) => ({
-        kind: "scene" as const,
-        id: s.id,
-        label: discreetMode ? s.discreet_title : s.title,
-        sub: `${s.category} • ${s.intensity}`,
-        categorySlug: s.category_slug,
-        run: () => {
-          router.push(`/scenes/${s.id}`);
-          onClose();
-        },
-      }));
+      .map((s) => {
+        const catMeta = CATEGORIES.find((c) => c.slug === s.category_slug);
+        const displayCat = discreetMode ? catMeta?.discreetName || s.category : s.category;
+        return {
+          kind: "scene" as const,
+          id: s.id,
+          label: discreetMode ? s.discreet_title : s.title,
+          sub: `${displayCat} • ${s.intensity}`,
+          categorySlug: s.category_slug,
+          run: () => {
+            router.push(`/scenes/${s.id}`);
+            onClose();
+          },
+        };
+      });
 
     return [...matchedActions, ...matchedScenes];
   }, [query, scenes, discreetMode, setDiscreetMode, router, onClose]);
@@ -117,6 +129,11 @@ export function CommandPalette({
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
+
+  useEffect(() => {
+    if (!open) return;
+    optionRefs.current[selectedIndex]?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex, open]);
 
   if (!open) return null;
 
@@ -136,6 +153,8 @@ export function CommandPalette({
     }
   };
 
+  const activeOptionId = items[selectedIndex]?.id ? `cmd-opt-${items[selectedIndex].id}` : undefined;
+
   return (
     <div
       className="no-print fixed inset-0 z-50 bg-black/75 flex items-start justify-center pt-16 sm:pt-24 px-4"
@@ -148,13 +167,17 @@ export function CommandPalette({
         aria-modal="true"
         aria-label="Quick Command Palette"
         onKeyDown={handleKeyDown}
-        className="card-elevated w-full max-w-xl rounded-xl border border-[#C41E2E]/50 bg-[#101014] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.85)]"
+        className="card-elevated w-full max-w-xl rounded-xl border border-[var(--accent)]/60 bg-[#101014] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.85)]"
       >
-        <div className="flex items-center gap-2.5 px-4 border-b border-[#27272F]">
+        <div className="flex items-center gap-2.5 px-4 border-b border-[#27272F] focus-within:border-[var(--accent)] transition-colors">
           <Search className="w-4 h-4 text-[#F87171] shrink-0" />
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls="cmd-listbox"
+            aria-activedescendant={activeOptionId}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Jump to any scene or action (e.g. boot, pup, collar, discreet)..."
@@ -165,13 +188,13 @@ export function CommandPalette({
             type="button"
             onClick={onClose}
             aria-label="Close command palette"
-            className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded text-[#A6A6B2] hover:text-[#F5F5F7]"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded text-[#A6A6B2] hover:text-[#F5F5F7]"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <ul className="max-h-80 overflow-y-auto p-2 space-y-1">
+        <ul id="cmd-listbox" role="listbox" className="max-h-80 overflow-y-auto p-2 space-y-1">
           {items.length === 0 ? (
             <li className="px-3 py-6 text-center text-xs text-[#A6A6B2]">
               No matching scenes or actions.
@@ -180,12 +203,18 @@ export function CommandPalette({
             items.map((item, idx) => {
               const active = idx === selectedIndex;
               return (
-                <li key={item.id}>
+                <li key={item.id} role="presentation">
                   <button
+                    ref={(el) => {
+                      optionRefs.current[idx] = el;
+                    }}
+                    id={`cmd-opt-${item.id}`}
+                    role="option"
+                    aria-selected={active}
                     type="button"
                     onClick={item.run}
                     onMouseEnter={() => setSelectedIndex(idx)}
-                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 min-h-[44px] rounded-md text-left transition-colors ${
                       active ? "btn-red" : "text-[#F5F5F7] hover:bg-[#17171C]"
                     }`}
                   >

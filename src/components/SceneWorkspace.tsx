@@ -567,8 +567,34 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
       ) : (
         /* Full Interactive Workspace */
         <div className="space-y-5">
+          {/* Sticky Mini-Conductor when timer is actively running */}
+          {timerRunning && scene.beats[activeBeatIndex] && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="no-print sticky top-[68px] z-30 card-elevated rounded-lg border border-[var(--accent)] bg-[#070709]/95 px-4 py-2.5 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-2.5 min-w-0 text-xs">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0 shadow-[0_0_8px_var(--accent-glow)]"
+                  style={{ backgroundColor: "var(--accent)" }}
+                />
+                <span className="font-semibold text-[#F5F5F7] truncate">
+                  Live Beat {activeBeatIndex + 1}/{scene.beats.length}:{" "}
+                  {scene.beats[activeBeatIndex].title}
+                </span>
+              </div>
+              <a
+                href="#scene-conductor"
+                className="glow-neighbor px-3 min-h-[36px] inline-flex items-center rounded text-[11px] font-medium shrink-0"
+              >
+                Conductor ↑
+              </a>
+            </div>
+          )}
+
           {/* Timer + Partner Customization */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 no-print">
+          <div id="scene-conductor" className="grid grid-cols-1 lg:grid-cols-2 gap-4 no-print">
             <SceneTimer
               defaultMinutes={scene.duration_min}
               beats={scene.beats}
@@ -652,30 +678,37 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
           >
             <div className="space-y-6">
               {/* Pre-Flight Readiness Summary Strip */}
-              <div className="no-print rounded-md border border-[#27272F] bg-[#070709] p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-semibold text-[#F5F5F7]">
-                  Pre-Flight Readiness:{" "}
-                  <span
-                    className={
-                      readiness.status === "ready"
-                        ? "text-[#88B897]"
+              <div className="no-print rounded-md border border-[#27272F] bg-[#070709] p-3 space-y-2 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-[#F5F5F7]">
+                    Pre-Flight Readiness:{" "}
+                    <span
+                      className={
+                        readiness.status === "ready"
+                          ? "text-[#88B897]"
+                          : readiness.status === "has-hard-no"
+                            ? "text-[#FCA5A5]"
+                            : "text-[#E0C37C]"
+                      }
+                    >
+                      {readiness.status === "ready"
+                        ? "All Clear — Ready"
                         : readiness.status === "has-hard-no"
-                          ? "text-[#FCA5A5]"
-                          : "text-[#E0C37C]"
-                    }
-                  >
-                    {readiness.status === "ready"
-                      ? "All Clear — Ready"
-                      : readiness.status === "has-hard-no"
-                        ? `${readiness.noCount} Hard Limit(s) Set`
-                        : `${readiness.unansweredCount} Unanswered • ${readiness.maybeCount} Maybe`}
+                          ? `${readiness.noCount} Hard Limit(s) Set`
+                          : `${readiness.unansweredCount} Unanswered • ${readiness.maybeCount} Maybe`}
+                    </span>
                   </span>
-                </span>
-                <div className="flex items-center gap-3 text-[11px]">
-                  <span className="text-[#88B897]">{readiness.yesCount} Yes</span>
-                  <span className="text-[#E0C37C]">{readiness.maybeCount} Maybe</span>
-                  <span className="text-[#FCA5A5]">{readiness.noCount} No</span>
+                  <div className="flex items-center gap-3 text-[11px]">
+                    <span className="text-[#88B897]">{readiness.yesCount} Yes</span>
+                    <span className="text-[#E0C37C]">{readiness.maybeCount} Maybe</span>
+                    <span className="text-[#FCA5A5]">{readiness.noCount} No</span>
+                  </div>
                 </div>
+                {readiness.hardNoLabels.length > 0 && (
+                  <div className="pt-2 border-t border-[#1F1F27] text-[11px] text-[#FCA5A5]">
+                    <strong>Off-limits:</strong> {readiness.hardNoLabels.join(" • ")}
+                  </div>
+                )}
               </div>
 
               {scene.negotiation.checklist.map((sec) => (
@@ -687,7 +720,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
                     <button
                       type="button"
                       onClick={() => handleMarkSectionYes(sec.items)}
-                      className="no-print glow-neighbor px-2.5 min-h-[32px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
+                      className="no-print glow-neighbor px-3 min-h-[44px] sm:min-h-[34px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
                     >
                       Mark Section Yes
                     </button>
@@ -769,10 +802,11 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
               ))}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#A6A6B2] block">
+                <label htmlFor="additional-hard-limits" className="text-xs font-medium text-[#A6A6B2] block">
                   Additional Hard Limits / Notes
                 </label>
                 <textarea
+                  id="additional-hard-limits"
                   rows={2}
                   value={customLimits}
                   onChange={(e) => setCustomLimits(e.target.value)}
@@ -822,7 +856,7 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
                     key={beat.order}
                     className={`rounded-md border p-3.5 space-y-1 transition-all ${
                       isLive
-                        ? "border-[#C41E2E] bg-[#C41E2E]/10 shadow-[0_0_18px_var(--accent-glow-soft)]"
+                        ? "border-[var(--accent)] bg-[var(--accent)]/10 shadow-[0_0_18px_var(--accent-glow-soft)]"
                         : "border-[#27272F] bg-[#17171C]/70"
                     }`}
                   >
@@ -832,22 +866,26 @@ export function SceneWorkspace({ scene }: { scene: Scene }) {
                       </span>
                       <div className="flex items-center gap-2 text-xs">
                         {isLive && (
-                          <span className="no-print px-2 py-0.5 rounded bg-[#C41E2E] text-white font-semibold uppercase text-[10px]">
+                          <span
+                            className="no-print px-2 py-0.5 rounded text-white font-semibold uppercase text-[10px]"
+                            style={{ backgroundColor: "var(--accent)" }}
+                          >
                             {timerRunning ? "Live Now" : "Selected"}
                           </span>
                         )}
                         {beat.check_in && (
-                          <span className="px-2 py-0.5 rounded bg-[#C41E2E]/20 text-[#FCA5A5] border border-[#C41E2E]/50">
+                          <span className="px-2 py-0.5 rounded bg-[var(--accent)]/20 text-[#FCA5A5] border border-[var(--accent)]/50">
                             Check-in
                           </span>
                         )}
                         <span className="text-[#A6A6B2]">{beat.duration_min} min</span>
                         <button
                           type="button"
+                          aria-label={`Jump conductor to beat ${beat.order}: ${beat.title}`}
                           onClick={() =>
                             setJumpSignal((prev) => ({ index: idx, seq: (prev?.seq ?? 0) + 1 }))
                           }
-                          className="no-print glow-neighbor px-2 py-1 min-h-[30px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
+                          className="no-print glow-neighbor px-3 min-h-[44px] sm:min-h-[32px] rounded text-[11px] font-medium text-[#A6A6B2] hover:text-[#F5F5F7]"
                         >
                           Jump
                         </button>
